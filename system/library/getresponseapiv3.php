@@ -3,18 +3,23 @@
 /**
  * GetResponse API v3 client library
  *
- * @author Pawel Maslak <pawel.maslak@getresponse.com>
- * @author Grzegorz Struczynski <grzegorz.struczynski@implix.com>
+ * @author GetResponse <grintegrations@getresponse.com>
  *
- * @see http://apidocs.getresponse.com/en/v3/resources
+ * @see http://apidocs.getresponse.com/v3/resources
  * @see https://github.com/GetResponse/getresponse-api-php
  */
 class GetResponseApiV3
 {
-
+    /** @var string */
     private $api_key;
+
+    /** @var string */
     private $api_url = 'https://api.getresponse.com/v3';
+
+    /** @var int */
     private $timeout = 10;
+
+    /** @var string */
     public $http_status;
 
     /**
@@ -82,6 +87,7 @@ class GetResponseApiV3
 
     /**
      * Return all autoresponders
+     * @param null $params
      * @return mixed
      */
     public function getAutoresponders($params = null)
@@ -115,7 +121,7 @@ class GetResponseApiV3
      */
     public function getRSSNewsletters()
     {
-        $this->call('rss-newsletters', 'GET', null);
+        return $this->call('rss-newsletters', 'GET', null);
     }
 
     /**
@@ -221,7 +227,7 @@ class GetResponseApiV3
      *
      * @return mixed
      */
-    public function getContacts($params = array())
+    public function getContacts($params = [])
     {
         return $this->call('contacts?' . $this->setParams($params));
     }
@@ -233,7 +239,7 @@ class GetResponseApiV3
      *
      * @return mixed
      */
-    public function updateContact($contact_id, $params = array())
+    public function updateContact($contact_id, $params = [])
     {
         return $this->call('contacts/' . $contact_id, 'POST', $params);
     }
@@ -255,7 +261,7 @@ class GetResponseApiV3
      *
      * @return mixed
      */
-    public function getCustomFields($params = array())
+    public function getCustomFields($params = [])
     {
         return $this->call('custom-fields?' . $this->setParams($params));
     }
@@ -274,8 +280,9 @@ class GetResponseApiV3
     /**
      * retrieve single custom field
      *
-     * @param string $cs_id obtained by API
+     * @param $custom_id
      * @return mixed
+     * @internal param string $cs_id obtained by API
      */
     public function getCustomField($custom_id)
     {
@@ -309,7 +316,7 @@ class GetResponseApiV3
      *
      * @return mixed
      */
-    public function getWebForms($params = array())
+    public function getWebForms($params = [])
     {
         return $this->call('webforms?' . $this->setParams($params));
     }
@@ -331,7 +338,7 @@ class GetResponseApiV3
      *
      * @return mixed
      */
-    public function getForms($params = array())
+    public function getForms($params = [])
     {
         return $this->call('forms?' . $this->setParams($params));
     }
@@ -345,21 +352,22 @@ class GetResponseApiV3
      * @return mixed
      * @throws Exception
      */
-    private function call($api_method = null, $http_method = 'GET', $params = array())
+    private function call($api_method = null, $http_method = 'GET', $params = [])
     {
         if (empty($api_method)) {
-            return (object)array(
-                'httpStatus' => '400',
-                'code' => '1010',
-                'codeDescription' => 'Error in external resources',
-                'message' => 'Invalid api method'
-            );
+            $obj = new \stdClass();
+            $obj->httpStatus = 400;
+            $obj->code = 1010;
+            $obj->codeDescription = 'Error in external resources';
+            $obj->message = 'Invalid api method';
+
+            return $obj;
         }
 
         $params = json_encode($params);
         $url = $this->api_url . '/' . $api_method;
 
-        $options = array(
+        $options = [
             CURLOPT_URL => $url,
             CURLOPT_ENCODING => 'gzip,deflate',
             CURLOPT_FRESH_CONNECT => 1,
@@ -367,8 +375,8 @@ class GetResponseApiV3
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_HEADER => false,
             CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => array('X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json')
-        );
+            CURLOPT_HTTPHEADER => ['X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json']
+        ];
 
         if (!empty($this->enterprise_domain)) {
             $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->enterprise_domain;
@@ -401,9 +409,9 @@ class GetResponseApiV3
      *
      * @return string
      */
-    private function setParams($params = array())
+    private function setParams($params = [])
     {
-        $result = array();
+        $result = [];
         if (is_array($params)) {
             foreach ($params as $key => $value) {
                 $result[$key] = $value;
