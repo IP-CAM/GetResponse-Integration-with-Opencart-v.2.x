@@ -53,11 +53,11 @@ class ControllerExtensionModuleGetresponse extends Controller
 		}
 
 		$params = [
-				'name' => $customer['firstname'] . ' ' . $customer['lastname'],
-				'email' => $customer['email'],
-				'campaign' => ['campaignId' => $settings['campaign']],
-				'customFieldValues' => $customs,
-				'ipAddress' => empty($customer['ip']) ? '127.0.0.1' : $customer['ip']
+            'name' => $customer['firstname'] . ' ' . $customer['lastname'],
+            'email' => $customer['email'],
+            'campaign' => ['campaignId' => $settings['campaign']],
+            'customFieldValues' => $customs,
+            'ipAddress' => empty($customer['ip']) ? '127.0.0.1' : $customer['ip']
         ];
 
 		if (isset($settings['sequence_active']) && $settings['sequence_active'] == 1 && isset($settings['day'])) {

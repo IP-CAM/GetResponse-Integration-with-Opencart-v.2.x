@@ -16,8 +16,7 @@ class ControllerExtensionModuleGetresponse extends Controller
     /**
      * @param $registry
      */
-	public function __construct($registry)
-	{
+	public function __construct($registry) {
 		parent::__construct($registry);
 
 		$this->gr_apikey = $this->config->get('module_getresponse_apikey');
@@ -60,8 +59,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->response->setOutput($this->load->view('extension/module/getresponse', $data));
 	}
 
-    public function disconnect()
-    {
+    public function disconnect() {
         $this->load->language('extension/module/getresponse');
         $this->load->model('localisation/language');
         $this->load->model('setting/setting');
@@ -85,12 +83,10 @@ class ControllerExtensionModuleGetresponse extends Controller
 
         $this->session->data['success'] = $this->language->get('text_disconnect_success');
 
-        $this->response->redirect(
-            $this->url->link(
-                    'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
-                    'SSL'
-                )
-            );
+        $this->response->redirect($this->url->link(
+            'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+            'SSL'
+        ));
 	}
 
     /**
@@ -336,12 +332,10 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 			$this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
 
-			$this->response->redirect(
-					$this->url->link(
-							'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
-							'SSL'
-					)
-			);
+			$this->response->redirect($this->url->link(
+                'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+                'SSL'
+            ));
 		}
 
 		return $data;
@@ -479,8 +473,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 	/**
 	 * @return array
 	 */
-	private function getCampaigns()
-	{
+	private function getCampaigns() {
 		if (empty($this->gr_apikey)) {
 			return [];
 		}

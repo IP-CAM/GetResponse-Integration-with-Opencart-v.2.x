@@ -1,9 +1,14 @@
 <?php
 
+/**
+ * Class ModelExtensionGetresponse
+ */
 class ModelExtensionGetresponse extends Model
 {
-	public function getContacts()
-	{
+    /**
+     * @return array
+     */
+	public function getContacts() {
 		$query = $this->db->query("SELECT
             cu.firstname,
             cu.lastname,
