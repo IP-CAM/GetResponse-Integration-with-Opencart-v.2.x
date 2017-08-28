@@ -94,13 +94,14 @@ class ControllerExtensionModuleGetresponse extends Controller
      */
 	private function assignForms($data) {
 		$forms = $this->get_response->getForms();
+
 		$new_forms = [];
 		$old_forms = [];
 
 		if (!empty($forms)) {
 			foreach ($forms as $form) {
 				if (isset($form->formId) && !empty($form->formId) && $form->status == 'published') {
-                    $new_forms[] = ['id' => $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
+                    $new_forms[] = ['id' => 'old-' . $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
 				}
 			}
 		}
@@ -110,7 +111,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		if (!empty($webforms)) {
 			foreach ($webforms as $form) {
 				if (isset($form->webformId) && !empty($form->webformId) && $form->status == 'enabled') {
-					$old_forms[] = ['id' => $form->webformId, 'name' => $form->name, 'url' => $form->scriptUrl];
+					$old_forms[] = ['id' => 'new-' . $form->webformId, 'name' => $form->name, 'url' => $form->scriptUrl];
 				}
 			}
 		}
@@ -254,8 +255,16 @@ class ControllerExtensionModuleGetresponse extends Controller
 			} else {
 
                 if (!empty($this->get_response)) {
-                    $webform = $this->get_response->getWebForm($this->request->post['getresponse_form']['id']);
-                    $this->request->post['getresponse_form']['url'] = $webform->scriptUrl;
+
+                    $form_details = explode('-', $this->request->post['getresponse_form']['id']);
+
+                    if(isset($form_details['0']) && 'old' === $form_details[0]) {
+                        $webform = $this->get_response->getForm($form_details[1]);
+                    } else {
+                        $webform = $this->get_response->getWebForm($form_details[1]);
+                    }
+
+                    $this->request->post['getresponse_form']['url'] = isset($webform->scriptUrl) ? $webform->scriptUrl : null;
                 } else {
                     $this->request->post['getresponse_form']['url'] = '';
                 }

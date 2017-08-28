@@ -186,7 +186,7 @@
       if (cycles.hasOwnProperty(campaign_id)) {
           cycles_label.show();
           var obj = cycles[campaign_id];
-          var current_cycle_day = "<?php echo $getresponse_reg['day']; ?>";
+          var current_cycle_day = "<?php echo isset($getresponse_reg['day']) ? $getresponse_reg['day'] : null ?>";
           for (var prop in obj) {
               if (obj.hasOwnProperty(prop)) {
                   var select = (current_cycle_day === obj[prop].day) ? 'selected' : '';
