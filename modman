@@ -1,7 +1,7 @@
-admin/controller/extension/module/getresponse.php admin/controller/extension/module/getresponse.php
-admin/language/en-gb/extension/module/getresponse.php admin/language/en-gb/extension/module/getresponse.php
-admin/model/extension/getresponse.php admin/model/extension/getresponse.php
-admin/view/template/extension/module/getresponse.twig admin/view/template/extension/module/getresponse.twig
-catalog/controller/extension/module/getresponse.php catalog/controller/extension/module/getresponse.php
-system/library/getresponseapiv3.php system/library/getresponseapiv3.php
-catalog/view/theme/default/template/extension/module/getresponse.twig catalog/view/theme/default/template/extension/module/getresponse.twig
+admin/controller/extension/module/getresponse.php
+admin/language/en-gb/extension/module/getresponse.php
+admin/model/extension/getresponse.php
+admin/view/template/extension/module/getresponse.tpl
+catalog/controller/extension/module/getresponse.php
+catalog/view/theme/default/template/extension/module/getresponse.tpl
+system/library/getresponseapiv3.php
