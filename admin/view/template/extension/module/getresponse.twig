@@ -189,7 +189,7 @@
                                             {% if new_forms %}
                                                 <optgroup label="{{ label_new_forms }}">
                                                     {% for form in new_forms %}
-                                                        <option value="{{ form['id'] }}"
+                                                        <option value="webform-{{ form['id'] }}"
                                                                 {% if getresponse_form['id'] == form['id'] %} selected {% endif %}
                                                                 data-url="{{ form['url'] }}">{{ form['name'] }}</option>
                                                     {% endfor %}
@@ -199,7 +199,7 @@
                                             {% if old_forms %}
                                                 <optgroup label="{{ label_old_forms }}">
                                                     {% for form in old_forms %}
-                                                        <option value="{{ form['id'] }}"
+                                                        <option value="form-{{ form['id'] }}"
                                                                 {% if getresponse_form['id'] == form['id'] %} selected {% endif %}
                                                                 data-url="{{ form['url'] }}">{{ form['name'] }}</option>
                                                     {% endfor %}
