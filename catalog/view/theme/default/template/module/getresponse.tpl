@@ -1,1 +1,0 @@
-<script type="text/javascript" src="<?php echo $form_url; ?>"></script>

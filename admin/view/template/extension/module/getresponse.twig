@@ -1,0 +1,311 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <button id="save" form="form-module" data-toggle="tooltip" title="{{ button_save }}"
+                        class="btn btn-primary"><i class="fa fa-save"></i></button>
+
+                {% if is_connected %}
+                    <a id="disconnect" href="{{ disconnect_link }}" data-toggle="tooltip"
+                       title="{{ button_disconnect }}" class="btn btn-danger"><i class="fa fa-chain-broken"></i></a>
+                {% endif %}
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i
+                            class="fa fa-reply"></i></a>
+            </div>
+
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+
+        </div>
+    </div>
+    <div class="container-fluid">
+
+        <div class="gr-info"></div>
+
+        {% if error_warning %}
+            <div class="alert alert-danger alert-dismissible"><i
+                        class="fa fa-exclamation-circle"></i> {{ error_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+
+        {% if save_success %}
+            <div class="alert alert-success alert-dismissible"><i
+                        class="fa fa-exclamation-circle"></i> {{ save_success }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+            </div>
+            <div class="panel-body">
+                <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form"
+                      class="form-horizontal">
+                    <input type="hidden" value="1" name="module_getresponse_status">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" {% if active_tab == 'home' %} class="active" {% endif %}><a
+                                    href="#settings" aria-controls="home" role="tab"
+                                    data-toggle="tab">{{ apikey_title }}</a></li>
+                        {% if getresponse_apikey %}
+
+                            <li role="presentation" {% if active_tab == 'export' %} class="active" {% endif %}><a
+                                        href="#export" aria-controls="export" role="tab"
+                                        data-toggle="tab">{{ export_title }}</a></li>
+                            <li role="presentation" {% if active_tab == 'registration' %} class="active" {% endif %}><a
+                                        href="#registration" aria-controls="registration" role="tab"
+                                        data-toggle="tab">{{ register_title }}</a></li>
+                            <li role="presentation" {% if active_tab == 'webform' %} class="active" {% endif %}><a
+                                        href="#webform" aria-controls="webform" role="tab"
+                                        data-toggle="tab">{{ webform_title }}</a></li>
+
+                        {% endif %}
+                    </ul>
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane {% if active_tab == 'home' %} active {% endif %}"
+                             id="settings">
+                            <h3>{{ apikey_title }}</h3>
+                            <p>{{ apikey_info }}</p>
+                            <div class="form-group required">
+                                <label for="getresponse-apikey"
+                                       class="col-sm-2 control-label">{{ entry_apikey }}</label>
+                                <div class="col-sm-10">
+                                    <input id="getresponse-hidden-apikey" class="form-control"
+                                           name="module_getresponse_hidden_apikey"
+                                           value="{{ getresponse_hidden_apikey }}" size="50"/>
+                                    <span id="gr-apikey-help" class="help-block">{{ entry_apikey_hint }}</span>
+                                    <input id="getresponse-apikey" type="hidden" name="module_getresponse_apikey"
+                                           value="{{ getresponse_apikey }}" size="50"/>
+                                </div>
+                            </div>
+                        </div>
+                        {% if getresponse_apikey %}
+                            <div role="tabpanel" class="tab-pane {% if active_tab == 'export' %}active {% endif %}"
+                                 id="export">
+                                <h3>{{ export_title }}</h3>
+                                <p>{{ export_info }}</p>
+                                <div class="form-group">
+                                    <label for="getresponse-campaign"
+                                           class="col-sm-2 control-label">{{ label_campaign }}</label>
+                                    <div class="col-sm-10">
+                                        <select id="getresponse-campaign" class="form-control"
+                                                name="module_getresponse_campaign">
+
+                                            {% for campaign in campaigns %}
+                                                <option value="{{ campaign.campaignId }}" {% if getresponse_campaign == campaign.campaignId %} selected {% endif %}>{{ campaign.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <span id="config-campaign-help"
+                                              class="help-block">{{ entry_campaign_hint }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-offset-2 col-sm-3">
+                                    <a id="gr-export" class="button btn btn-primary">{{ button_export }}</a>
+                                </div>
+                                <div class="col-sm-7">
+                                    <div class="rollling"></div>
+                                </div>
+                            </div>
+                            <div role="tabpanel"
+                                 class="tab-pane {% if active_tab == 'registration' %} active {% endif %}"
+                                 id="registration">
+                                <h3>{{ register_title }}</h3>
+                                <p>{{ register_info }}</p>
+                                <div class="form-group">
+                                    <label for="getresponse-reg-active" class="col-sm-2 control-label">{{ label_active }}</label>
+                                    <div class="col-sm-10">
+                                            <label class="radio-inline" for="getresponse-reg-active"><input type="radio" id="getresponse-reg-active" {% if '1' == getresponse_reg['active'] %} checked {% endif %} name="module_getresponse_reg[active]" value="1">{{ label_yes }}</label>
+                                        <label for="" class="radio-inline"><input type="radio" {% if getresponse_reg['active'] != 1 %} checked {% endif %} name="module_getresponse_reg[active]" value="0">{{ label_no }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="getresponse-reg-campaign"
+                                           class="col-sm-2 control-label">{{ label_campaign }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="module_getresponse_reg[campaign]" id="getresponse-reg-campaign"
+                                                class="form-control">
+
+                                            {% for campaign in campaigns %}
+
+                                                <option value="{{ campaign.campaignId }}"
+                                                        {% if getresponse_reg['campaign'] == campaign.campaignId %} selected {% endif %}>{{ campaign.name }}</option>
+
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group sequence-day-label">
+                                    <div class="col-sm-2"></div>
+                                    <div class="col-sm-10 checkbox">
+                                        <label>
+                                            <input type="checkbox"
+                                                   value="1" {% if getresponse_reg['sequence_active'] == 1 %} checked {% endif %}
+                                                   name="module_getresponse_reg[sequence_active]">{{ label_auto_queue }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group sequence-day-label">
+                                    <label for="getresponse-reg-day"
+                                           class="col-sm-2 control-label">{{ label_day_of_cycle }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="getresponse_reg[day]" id="getresponse-reg-day"
+                                                class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div role="tabpanel" class="tab-pane {% if active_tab == 'webform' %} active {% endif %}"
+                                 id="webform">
+                                <h3>{{ webform_title }}</h3>
+                                <p>{{ webform_info }}</p>
+                                <div class="form-group">
+                                    <label for="getresponse-form-active"
+                                           class="col-sm-2 control-label">{{ label_active }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline">
+                                            <input name="module_getresponse_form[active]" type="radio"
+                                                   id="getresponse-form-active"
+                                                   {% if getresponse_form['active'] == 1 %} checked {% endif %}
+                                                   value="1">{{ label_yes }}
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input name="module_getresponse_form[active]" type="radio"
+                                                    {% if getresponse_form['active'] != 1 %} checked {% endif %}
+                                                   value="0">{{ label_no }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="getresponse-form-id"
+                                           class="col-sm-2 control-label">{{ label_form }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="module_getresponse_form[id]" id="getresponse-form-id"
+                                                class="form-control">
+                                            {% if new_forms %}
+                                                <optgroup label="{{ label_new_forms }}">
+                                                    {% for form in new_forms %}
+                                                        <option value="webform-{{ form['id'] }}"
+                                                                {% if getresponse_form['id'] == form['id'] %} selected {% endif %}
+                                                                data-url="{{ form['url'] }}">{{ form['name'] }}</option>
+                                                    {% endfor %}
+                                                </optgroup>
+                                            {% endif %}
+
+                                            {% if old_forms %}
+                                                <optgroup label="{{ label_old_forms }}">
+                                                    {% for form in old_forms %}
+                                                        <option value="form-{{ form['id'] }}"
+                                                                {% if getresponse_form['id'] == form['id'] %} selected {% endif %}
+                                                                data-url="{{ form['url'] }}">{{ form['name'] }}</option>
+                                                    {% endfor %}
+                                                </optgroup>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+                        <input type="hidden" name="module_getresponse_form[current_tab]" id="getresponse-current-tab"
+                               value="">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        <!--
+        $(function () {
+            var campaign_element = $('#getresponse-campaign');
+            var export_element = $('#gr-export');
+            var tab_element = $("li[role='presentation']");
+            var current_tab_input = $('#getresponse-current-tab');
+
+            $('button#save').bind('click', function () {
+                $('#form').submit();
+            });
+
+            $('button#disconnect').bind('click', function () {
+                window.location.href = '{{ disconnect_link|raw() }}';
+            });
+
+            $('#getresponse-reg-campaign').change(function () {
+                getCycleDays();
+            });
+
+            function getCycleDays() {
+                var campaign_id = $('#getresponse-reg-campaign').val(),
+                    day_element = $('#getresponse-reg-day'),
+                    cycles_label = $('.sequence-day-label'),
+                    cycles = $.parseJSON('{% if campaign_days %} {{ campaigns|json_encode() }} {% else %} {} {% endif %}');
+
+                cycles_label.hide();
+                day_element.text('');
+
+                if (cycles.hasOwnProperty(campaign_id)) {
+                    cycles_label.show();
+                    var obj = cycles[campaign_id];
+                    var current_cycle_day = "{{ getresponse_reg['day'] }}";
+                    for (var prop in obj) {
+                        if (obj.hasOwnProperty(prop)) {
+                            var select = (current_cycle_day === obj[prop].day) ? 'selected' : '';
+                            var option = '<option value="' + parseInt(obj[prop].day) + '" ' + select + '>Day ' +
+                                obj[prop].day + ': ' + obj[prop].name + ' (' + obj[prop].status + ')' +
+                                '</option>';
+
+                            day_element.append(option);
+                        }
+                    }
+                }
+            }
+
+            getCycleDays();
+
+            function ajax_export() {
+                var campaign = campaign_element.val();
+
+                $.ajax({
+                    url: "index.php?route=extension/module/getresponse/export&user_token={{ token }}",
+                    beforeSend: function () {
+                        $('#gr-export').text('{{ exporting_button }}');
+                    },
+                    data: {
+                        'api_key': '{{ getresponse_apikey }}',
+                        'campaign': campaign
+                    },
+                    success: function (data) {
+                        $('#gr-export').text('{{ button_export }}');
+                        $('.alert').hide();
+                        $('.gr-info').html('<div class="alert alert-success">' + data.response + '</div>');
+                    },
+                    error: function () {
+                        $('.alert').hide();
+                        $('#gr-export').text('{{ button_export }}');
+                        $('.gr-info').html(' <div class="alert alert-danger">{{ info_ajax_error }}</div>');
+                    },
+                    type: "POST",
+                    async: true,
+                    dataType: "json"
+                });
+            }
+
+            $(export_element).click(function () {
+                $(export_element).val('{{ exporting_button }}');
+                ajax_export();
+            });
+
+            $(tab_element).click(function () {
+                var new_value = $(this).find('a').attr('aria-controls');
+                current_tab_input.val(new_value);
+            });
+            current_tab_input.val('{{ active_tab }}');
+        });
+        //-->
+    </script>
+{{ footer }}
