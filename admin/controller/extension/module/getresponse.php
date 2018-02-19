@@ -288,42 +288,52 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->load->model('setting/setting');
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 
-		    // update settings (connected)
+        // update settings (connected)
 		    if (!empty($this->gr_apikey)) {
 
-                $webform = $this->get_response->getWebForm($this->request->post['module_getresponse_form']['id']);
-                $this->request->post['module_getresponse_form']['url'] = $webform->scriptUrl;
+                $form_id = $this->request->post['module_getresponse_form']['id'];
 
-		        $data = [
-		            'module_getresponse_status' => 1,
-                    'module_getresponse_apikey' => $this->gr_apikey,
-		            'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
-		            'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
-		            'module_getresponse_form' => $this->request->post['module_getresponse_form']
-                ];
+		        if (!empty($form_id)) {
+		            $params = explode('-', $form_id);
 
-                $this->model_setting_setting->editSetting('module_getresponse', $data);
-                $this->session->data['success'] = $this->language->get('text_success');
+		            if (count($params) === 2) {
+
+                        if ($params[0] === 'form') {
+                            $webform = $this->get_response->getWebForm($params[1]);
+                        } else {
+                            $webform = $this->get_response->getForm($params[1]);
+                        }
+
+                        if (isset($webform->scriptUrl)) {
+                            $this->request->post['module_getresponse_form']['url'] = $webform->scriptUrl;
+                            $this->request->post['module_getresponse_form']['id'] = $params[1];
+                        }
+                    }
+                }
+
+                $data = [
+                    'module_getresponse_status' => 1,
+                        'module_getresponse_apikey' => $this->gr_apikey,
+                    'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
+                    'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
+                    'module_getresponse_form' => $this->request->post['module_getresponse_form']
+                    ];
+
+                    $this->model_setting_setting->editSetting('module_getresponse', $data);
+                    $this->session->data['success'] = $this->language->get('text_success');
 
             // new connection
             } else {
 
-		        $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
+		            $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
 
                 if (!$this->checkApiKey($apiKey)) {
                     $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
                 } else {
-
-                    $this->request->post['module_getresponse_form']['url'] = '';
-
                     $data = [
                         'module_getresponse_status' => 1,
-                        'module_getresponse_apikey' => $apiKey,
-                        'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
-                        'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
-                        'module_getresponse_form' => $this->request->post['module_getresponse_form']
+                        'module_getresponse_apikey' => $apiKey
                     ];
-
 
                     $this->model_setting_setting->editSetting('module_getresponse', $data);
                     $this->session->data['success'] = $this->language->get('text_success');
