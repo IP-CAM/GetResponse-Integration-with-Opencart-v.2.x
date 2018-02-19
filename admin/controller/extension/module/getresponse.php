@@ -19,7 +19,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 	public function __construct($registry) {
 		parent::__construct($registry);
 
-		$this->gr_apikey = $this->config->get('getresponse_apikey');
+		$this->gr_apikey = $this->config->get('module_getresponse_apikey');
 
 		if (!empty($this->gr_apikey)) {
 			$this->get_response = new GetResponseApiV3($this->gr_apikey);
@@ -27,26 +27,31 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	public function index() {
+    
 		$this->load->language('extension/module/getresponse');
 		$this->load->model('localisation/language');
 		$this->load->model('design/layout');
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$data = [];
+    $data['is_connected'] = false;
+
 		$data = $this->saveSettings($data);
 		$data = $this->assignLanguage($data);
 		$data = $this->assignSettings($data);
 		$data = $this->assignBreadcrumbs($data);
 
 		if (!empty($this->gr_apikey)) {
+		  $data['is_connected'] = true;
 			$data = $this->assignAutoresponders($data);
 			$data = $this->assignForms($data);
 			$data['campaigns'] = $this->getCampaigns();
 		}
 
+		$data['disconnect_link'] = $this->url->link('extension/module/getresponse/disconnect', 'user_token=' . $this->session->data['user_token'], 'SSL');
 		$data['layouts'] = $this->model_design_layout->getLayouts();
-		$data['action'] = $this->url->link('extension/module/getresponse', 'token=' . $this->session->data['token'], 'SSL');
-		$data['cancel'] = $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL');
+		$data['action'] = $this->url->link('extension/module/getresponse', 'user_token=' . $this->session->data['user_token'], 'SSL');
+		$data['cancel'] = $this->url->link('extension/module', 'user_token=' . $this->session->data['user_token'], 'SSL');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -55,6 +60,36 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->response->setOutput($this->load->view('extension/module/getresponse', $data));
 	}
 
+    public function disconnect() {
+        $this->load->language('extension/module/getresponse');
+        $this->load->model('localisation/language');
+        $this->load->model('setting/setting');
+
+        $apiKey = $this->config->get('module_getresponse_apikey');
+
+        if (empty($apiKey)) {
+            $this->response->redirect(
+                $this->url->link(
+                    'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+                    'SSL'
+                )
+            );
+        }
+
+        $this->model_setting_setting->editSetting('module_getresponse', [
+            'module_getresponse_form' => null,
+            'module_getresponse_apikey' => null,
+            'module_getresponse_status' => 0
+        ]);
+
+        $this->session->data['success'] = $this->language->get('text_disconnect_success');
+
+        $this->response->redirect($this->url->link(
+            'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+            'SSL'
+        ));
+	}
+  
     /**
      * @param array $data
      *
@@ -100,7 +135,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		if (!empty($forms)) {
 			foreach ($forms as $form) {
 				if (isset($form->formId) && !empty($form->formId) && $form->status == 'published') {
-                    $new_forms[] = ['id' => $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
+					$new_forms[] = ['id' => $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
 				}
 			}
 		}
@@ -130,17 +165,17 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$data['breadcrumbs'] = [];
 		$data['breadcrumbs'][] = [
 				'text' => $this->language->get('text_home'),
-				'href' => $this->url->link('common/home', 'token=' . $this->session->data['token'], 'SSL'),
+				'href' => $this->url->link('common/home', 'user_token=' . $this->session->data['user_token'], 'SSL'),
 				'separator' => false
         ];
 		$data['breadcrumbs'][] = [
 				'text' => $this->language->get('text_module'),
-				'href' => $this->url->link('extension/module', 'token=' . $this->session->data['token'], 'SSL'),
+				'href' => $this->url->link('extension/module', 'user_token=' . $this->session->data['user_token'], 'SSL'),
 				'separator' => ' :: '
         ];
 		$data['breadcrumbs'][] = [
 				'text' => $this->language->get('heading_title'),
-				'href' => $this->url->link('extension/module/getresponse', 'token=' . $this->session->data['token'], 'SSL'),
+				'href' => $this->url->link('extension/module/getresponse', 'user_token=' . $this->session->data['user_token'], 'SSL'),
 				'separator' => ' :: '
         ];
 
@@ -166,6 +201,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$data['entry_campaign'] = $this->language->get('entry_campaign');
 		$data['entry_campaign_hint'] = $this->language->get('entry_campaign_hint');
 		$data['button_save'] = $this->language->get('button_save');
+		$data['button_disconnect'] = $this->language->get('button_disconnect');
 		$data['button_cancel'] = $this->language->get('button_cancel');
 		$data['button_export'] = $this->language->get('button_export');
 		$data['apikey_info'] = $this->language->get('apikey_info');
@@ -186,8 +222,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$data['label_none'] = $this->language->get('label_none');
 		$data['label_new_forms'] = $this->language->get('label_new_forms');
 		$data['label_old_forms'] = $this->language->get('label_old_forms');
-		$data['info_loading'] = $this->language->get('info_loading');
 		$data['info_ajax_error'] = $this->language->get('info_ajax_error');
+		$data['text_edit'] = $this->language->get('text_edit');
+		$data['exporting_button'] = $this->language->get('exporting_button');
 
 		return $data;
 	}
@@ -199,18 +236,18 @@ class ControllerExtensionModuleGetresponse extends Controller
 	 */
 	private function assignSettings($data) {
 		$this->enable_module = $this->config->get('getresponse_enable_module');
-		$this->campaign = $this->config->get('getresponse_campaign');
+		$this->campaign = $this->config->get('module_getresponse_campaign');
 
-		$data['modules'] = $this->config->get('getresponse_module');
+		$data['modules'] = $this->config->get('module_getresponse_module');
 
-		if ($this->config->get('getresponse_form')) {
-			$data['getresponse_form'] = $this->config->get('getresponse_form');
+		if ($this->config->get('module_getresponse_form')) {
+			$data['getresponse_form'] = $this->config->get('module_getresponse_form');
 		} else {
 			$data['getresponse_form'] = ['id' => 0, 'url' => '' , 'active' => 0];
 		}
 
-		if ($this->config->get('getresponse_reg')) {
-			$data['getresponse_reg'] = $this->config->get('getresponse_reg');
+		if ($this->config->get('module_getresponse_reg')) {
+			$data['getresponse_reg'] = $this->config->get('module_getresponse_reg');
 		} else {
 			$data['getresponse_reg'] = ['campaign' => '', 'day' => '', 'sequence_active' => 0];
 		}
@@ -225,7 +262,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 			unset($this->session->data['error_warning']);
 		}
 
-		$data['token'] = $this->session->data['token'];
+		$data['token'] = $this->session->data['user_token'];
 
 		if (isset($data['getresponse_apikey']) && strlen($data['getresponse_apikey']) > 0 && isset($this->session->data['active_tab'])) {
             $data['active_tab'] = $this->session->data['active_tab'];
@@ -233,7 +270,9 @@ class ControllerExtensionModuleGetresponse extends Controller
             $data['active_tab'] = 'home';
         }
 
+    $apiKey = strlen($this->gr_apikey) > 0 ? str_repeat("*", strlen($this->gr_apikey) - 6) . substr($this->gr_apikey, -6) : '';
 		$data['getresponse_apikey'] = $this->gr_apikey;
+		$data['getresponse_hidden_apikey'] = $apiKey;
 		$data['getresponse_campaign'] = $this->campaign;
 
 		return $data;
@@ -246,32 +285,68 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return array
      */
 	private function saveSettings($data) {
+
 		$this->load->model('setting/setting');
-
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-			if (!$this->checkApiKey($this->request->post['getresponse_apikey'])) {
-                $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
-			} else {
 
-                if (!empty($this->get_response)) {
-                    $webform = $this->get_response->getWebForm($this->request->post['getresponse_form']['id']);
-                    $this->request->post['getresponse_form']['url'] = $webform->scriptUrl;
-                } else {
-                    $this->request->post['getresponse_form']['url'] = '';
+        // update settings (connected)
+		    if (!empty($this->gr_apikey)) {
+
+                $form_id = $this->request->post['module_getresponse_form']['id'];
+
+		        if (!empty($form_id)) {
+		            $params = explode('-', $form_id);
+
+		            if (count($params) === 2) {
+
+                        if ($params[0] === 'form') {
+                            $webform = $this->get_response->getWebForm($params[1]);
+                        } else {
+                            $webform = $this->get_response->getForm($params[1]);
+                        }
+
+                        if (isset($webform->scriptUrl)) {
+                            $this->request->post['module_getresponse_form']['url'] = $webform->scriptUrl;
+                            $this->request->post['module_getresponse_form']['id'] = $params[1];
+                        }
+                    }
                 }
 
-				$this->model_setting_setting->editSetting('getresponse', $this->request->post);
-				$this->session->data['success'] = $this->language->get('text_success');
-			}
+                $data = [
+                    'module_getresponse_status' => 1,
+                        'module_getresponse_apikey' => $this->gr_apikey,
+                    'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
+                    'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
+                    'module_getresponse_form' => $this->request->post['module_getresponse_form']
+                    ];
 
-			$this->session->data['active_tab'] = $this->request->post['getresponse_form']['current_tab'];
+                    $this->model_setting_setting->editSetting('module_getresponse', $data);
+                    $this->session->data['success'] = $this->language->get('text_success');
 
-			$this->response->redirect(
-					$this->url->link(
-							'extension/module/getresponse', 'token=' . $this->session->data['token'],
-							'SSL'
-					)
-			);
+            // new connection
+            } else {
+
+		            $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
+
+                if (!$this->checkApiKey($apiKey)) {
+                    $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
+                } else {
+                    $data = [
+                        'module_getresponse_status' => 1,
+                        'module_getresponse_apikey' => $apiKey
+                    ];
+
+                    $this->model_setting_setting->editSetting('module_getresponse', $data);
+                    $this->session->data['success'] = $this->language->get('text_success');
+                }
+            }
+
+			$this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
+
+			$this->response->redirect($this->url->link(
+                'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+                'SSL'
+            ));
 		}
 
 		return $data;
@@ -284,7 +359,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 	private function checkApiKey($apikey) {
 		if (empty($apikey)) {
 			return false;
-		} elseif ($this->config->get('getresponse_apikey') == $apikey) {
+		} elseif ($this->config->get('module_getresponse_apikey') == $apikey) {
 			return true;
 		}
 
@@ -302,9 +377,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 	private function validate() {
 		if (!$this->user->hasPermission('modify', 'extension/module/getresponse')) {
             $this->error['warning'] = $this->language->get('error_permission');
+            return false;
 		}
-
-		return (!$this->error);
+        return true;
 	}
 
 	/**
@@ -418,7 +493,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 			return $this->campaigns;
 		}
 
-		$this->campaigns = $this->get_response->getCampaigns();
+		$this->campaigns = (array) $this->get_response->getCampaigns();
 
 		if (isset($this->campaigns->httpStatus) && $this->campaigns->httpStatus != 200) {
 			$this->session->data['error_warning'] = $this->campaigns->codeDescription;
@@ -429,13 +504,12 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	public function install() {
-		$this->load->model('extension/event');
-		$this->model_extension_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
-
-    }
+      $this->load->model('setting/event');
+		  $this->model_setting_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
+  }
 
 	public function uninstall() {
-		$this->load->model('extension/event');
-		$this->model_extension_event->deleteEvent('Getresponse');
+      $this->load->model('setting/event');
+		  $this->model_setting_event->deleteEvent('getresponse');
 	}
 }

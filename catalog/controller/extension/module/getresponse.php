@@ -8,8 +8,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 	private $allow_fields = ['telephone', 'country', 'city', 'address', 'postcode'];
 
 	public function index() {
-		$form = $this->config->get('getresponse_form');
-
+		$form = $this->config->get('module_getresponse_form');
 		if (!isset($form['active']) || $form['active'] == 0 || strlen($form['url']) < 15) {
 			return false;
 		}
@@ -17,8 +16,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$data = [];
 		$data['form_url'] = $form['url'];
 
-		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/template/extension/module/getresponse')) {
-			return $this->load->view($this->config->get('config_template') . '/template/extension/module/getresponse', $data);
+		if (file_exists(DIR_TEMPLATE . $this->config->get('config_template') . '/extension/module/getresponse')) {
+			return $this->load->view($this->config->get('config_template') . '/extension/module/getresponse', $data);
 		}
 
 		return $this->load->view('extension/module/getresponse', $data);
@@ -35,8 +34,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		$this->load->model('account/customer');
 		$customer = $this->model_account_customer->getCustomer($customer_id);
-		$settings = $this->config->get('getresponse_reg');
-		$apikey = $this->config->get('getresponse_apikey');
+		$settings = $this->config->get('module_getresponse_reg');
+		$apikey = $this->config->get('module_getresponse_apikey');
 
 		if ($settings['active'] == 0 || $customer['newsletter'] == 0) {
 			return true;
@@ -53,11 +52,11 @@ class ControllerExtensionModuleGetresponse extends Controller
 		}
 
 		$params = [
-				'name' => $customer['firstname'] . ' ' . $customer['lastname'],
-				'email' => $customer['email'],
-				'campaign' => ['campaignId' => $settings['campaign']],
-				'customFieldValues' => $customs,
-				'ipAddress' => empty($customer['ip']) ? '127.0.0.1' : $customer['ip']
+            'name' => $customer['firstname'] . ' ' . $customer['lastname'],
+            'email' => $customer['email'],
+            'campaign' => ['campaignId' => $settings['campaign']],
+            'customFieldValues' => $customs,
+            'ipAddress' => empty($customer['ip']) ? '127.0.0.1' : $customer['ip']
         ];
 
 		if (isset($settings['sequence_active']) && $settings['sequence_active'] == 1 && isset($settings['day'])) {
@@ -74,7 +73,8 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return string
      */
 	private function getCustomFieldId($name) {
-        $apikey = $this->config->get('getresponse_apikey');
+
+        $apikey = $this->config->get('module_getresponse_apikey');
         $get_response = new GetResponseApiV3($apikey);
 
         $custom_field = (array) $get_response->getCustomFields(['query' => ['name' => $name]]);
