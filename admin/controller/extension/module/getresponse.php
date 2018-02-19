@@ -27,21 +27,22 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	public function index() {
-
+    
 		$this->load->language('extension/module/getresponse');
 		$this->load->model('localisation/language');
 		$this->load->model('design/layout');
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$data = [];
-        $data['is_connected'] = false;
+    $data['is_connected'] = false;
+
 		$data = $this->saveSettings($data);
 		$data = $this->assignLanguage($data);
 		$data = $this->assignSettings($data);
 		$data = $this->assignBreadcrumbs($data);
 
 		if (!empty($this->gr_apikey)) {
-		    $data['is_connected'] = true;
+		  $data['is_connected'] = true;
 			$data = $this->assignAutoresponders($data);
 			$data = $this->assignForms($data);
 			$data['campaigns'] = $this->getCampaigns();
@@ -88,7 +89,7 @@ class ControllerExtensionModuleGetresponse extends Controller
             'SSL'
         ));
 	}
-
+  
     /**
      * @param array $data
      *
@@ -269,7 +270,7 @@ class ControllerExtensionModuleGetresponse extends Controller
             $data['active_tab'] = 'home';
         }
 
-        $apiKey = strlen($this->gr_apikey) > 0 ? str_repeat("*", strlen($this->gr_apikey) - 6) . substr($this->gr_apikey, -6) : '';
+    $apiKey = strlen($this->gr_apikey) > 0 ? str_repeat("*", strlen($this->gr_apikey) - 6) . substr($this->gr_apikey, -6) : '';
 		$data['getresponse_apikey'] = $this->gr_apikey;
 		$data['getresponse_hidden_apikey'] = $apiKey;
 		$data['getresponse_campaign'] = $this->campaign;
@@ -503,13 +504,12 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	public function install() {
-        $this->load->model('setting/event');
-		$this->model_setting_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
-
-    }
+      $this->load->model('setting/event');
+		  $this->model_setting_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
+  }
 
 	public function uninstall() {
-        $this->load->model('setting/event');
-		$this->model_setting_event->deleteEvent('getresponse');
+      $this->load->model('setting/event');
+		  $this->model_setting_event->deleteEvent('getresponse');
 	}
 }
