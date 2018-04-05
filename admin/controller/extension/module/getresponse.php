@@ -291,7 +291,11 @@ class ControllerExtensionModuleGetresponse extends Controller
             // update settings (connected)
 		    if (!empty($this->gr_apikey)) {
 
-                $form_id = $this->request->post['module_getresponse_form']['id'];
+		        $form_id = false;
+
+		        if (isset($this->request->post['module_getresponse_form']['id'])) {
+                    $form_id = $this->request->post['module_getresponse_form']['id'];
+                }
 
 		        if (!empty($form_id)) {
 		            $params = explode('-', $form_id);
