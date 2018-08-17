@@ -154,7 +154,7 @@
                                     <label for="getresponse-reg-day"
                                            class="col-sm-2 control-label">{{ label_day_of_cycle }}</label>
                                     <div class="col-sm-10">
-                                        <select name="getresponse_reg[day]" id="getresponse-reg-day"
+                                        <select name="module_getresponse_reg[day]" id="getresponse-reg-day"
                                                 class="form-control"></select>
                                     </div>
                                 </div>
@@ -243,7 +243,7 @@
                 var campaign_id = $('#getresponse-reg-campaign').val(),
                     day_element = $('#getresponse-reg-day'),
                     cycles_label = $('.sequence-day-label'),
-                    cycles = $.parseJSON('{% if campaign_days %} {{ campaigns|json_encode() }} {% else %} {} {% endif %}');
+                    cycles = $.parseJSON('{% if campaign_days %} {{ campaign_days|json_encode() }} {% else %} {} {% endif %}');
 
                 cycles_label.hide();
                 day_element.text('');
@@ -251,16 +251,15 @@
                 if (cycles.hasOwnProperty(campaign_id)) {
                     cycles_label.show();
                     var obj = cycles[campaign_id];
+
                     var current_cycle_day = "{{ getresponse_reg['day'] }}";
                     for (var prop in obj) {
-                        if (obj.hasOwnProperty(prop)) {
-                            var select = (current_cycle_day === obj[prop].day) ? 'selected' : '';
-                            var option = '<option value="' + parseInt(obj[prop].day) + '" ' + select + '>Day ' +
-                                obj[prop].day + ': ' + obj[prop].name + ' (' + obj[prop].status + ')' +
-                                '</option>';
+                        var select = (current_cycle_day === obj[prop].day) ? 'selected' : '';
+                        var option = '<option value="' + parseInt(obj[prop].day) + '" ' + select + '>Day ' +
+                            obj[prop].day + ': ' + obj[prop].name + ' (' + obj[prop].status + ')' +
+                            '</option>';
 
-                            day_element.append(option);
-                        }
+                        day_element.append(option);
                     }
                 }
             }
