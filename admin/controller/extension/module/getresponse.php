@@ -497,12 +497,18 @@ class ControllerExtensionModuleGetresponse extends Controller
 			return $this->campaigns;
 		}
 
-		$this->campaigns = (array) $this->get_response->getCampaigns();
+        $this->campaigns = [];
 
-		if (isset($this->campaigns->httpStatus) && $this->campaigns->httpStatus != 200) {
+		$campaigns = (array) $this->get_response->getCampaigns();
+
+		if (isset($campaigns->httpStatus) && $campaigns->httpStatus != 200) {
 			$this->session->data['error_warning'] = $this->campaigns->codeDescription;
 			$this->campaigns = [];
 		}
+
+		foreach ($campaigns as $campaign) {
+		    $this->campaigns[$campaign->campaignId] = $campaign;
+        }
 
 		return $this->campaigns;
 	}
