@@ -7,6 +7,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 {
 	private $error = [];
 	private $gr_apikey;
+
+	/** @var GetResponseApiV3 */
 	private $get_response;
 	private $campaigns;
 	private $campaign;
@@ -43,6 +45,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		if (!empty($this->gr_apikey)) {
 		    $data['is_connected'] = true;
 			$data = $this->assignAutoresponders($data);
+			$data['campaign_days_json'] = json_encode($data['campaign_days']);
 			$data = $this->assignForms($data);
 			$data['campaigns'] = $this->getCampaigns();
 		}
@@ -96,24 +99,19 @@ class ControllerExtensionModuleGetresponse extends Controller
      */
 	private function assignAutoresponders($data) {
 		$autoresponders = $this->get_response->getAutoresponders();
+
 		$data['campaign_days'] = [];
 
-		if (isset($autoresponders->httpStatus) && $autoresponders->httpStatus != 200) {
-			$this->session->data['error_warning'] = $autoresponders->codeDescription;
-
-			return $data;
-		}
-
-		if (!empty($autoresponders) && is_object($autoresponders)) {
+		if (!empty($autoresponders)) {
 			foreach ($autoresponders as $autoresponder) {
-				if ($autoresponder->triggerSettings->dayOfCycle == null) {
+				if ($autoresponder['triggerSettings']['dayOfCycle'] == null) {
 					continue;
 				}
 
-				$data['campaign_days'][$autoresponder->triggerSettings->subscribedCampaign->campaignId][$autoresponder->triggerSettings->dayOfCycle] = [
-						'day' => $autoresponder->triggerSettings->dayOfCycle,
-						'name' => $autoresponder->subject,
-						'status' => $autoresponder->status
+				$data['campaign_days'][$autoresponder['triggerSettings']['subscribedCampaign']['campaignId']][$autoresponder['triggerSettings']['dayOfCycle']] = [
+                    'day' => $autoresponder['triggerSettings']['dayOfCycle'],
+                    'name' => $autoresponder['subject'],
+                    'status' => $autoresponder['status']
                 ];
 			}
 		}
@@ -133,8 +131,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($forms)) {
 			foreach ($forms as $form) {
-				if (isset($form->formId) && !empty($form->formId) && $form->status == 'published') {
-					$new_forms[] = ['id' => $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
+				if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
+					$new_forms[] = ['id' => $form['formId'], 'name' => $form['name'], 'url' => $form['scriptUrl']];
 				}
 			}
 		}
@@ -143,8 +141,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($webforms)) {
 			foreach ($webforms as $form) {
-				if (isset($form->webformId) && !empty($form->webformId) && $form->status == 'enabled') {
-					$old_forms[] = ['id' => $form->webformId, 'name' => $form->name, 'url' => $form->scriptUrl];
+				if (isset($form['webformId']) && !empty($form['webformId']) && $form['status'] == 'enabled') {
+					$old_forms[] = ['id' => $form['webformId'], 'name' => $form['name'], 'url' => $form['scriptUrl']];
 				}
 			}
 		}
@@ -308,8 +306,8 @@ class ControllerExtensionModuleGetresponse extends Controller
                             $webform = $this->get_response->getForm($params[1]);
                         }
 
-                        if (isset($webform->scriptUrl)) {
-                            $this->request->post['module_getresponse_form']['url'] = $webform->scriptUrl;
+                        if (isset($webform['scriptUrl'])) {
+                            $this->request->post['module_getresponse_form']['url'] = $webform['scriptUrl'];
                             $this->request->post['module_getresponse_form']['id'] = $params[1];
                         }
                     }
@@ -368,8 +366,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		$get_response = new GetResponseApiV3($apikey);
 		$campaigns = $get_response->getCampaigns();
-
-		return !(isset($campaigns->httpStatus) && $campaigns->httpStatus != 200);
+		return !empty($campaigns);
 	}
 
 	/**
@@ -398,7 +395,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($campaigns)) {
 			foreach ($campaigns as $campaign) {
-				if ($campaign->campaignId === $this->campaign) {
+				if ($campaign['campaignId'] === $this->campaign) {
 					$gr_campaign = $campaign;
 				}
 			}
@@ -424,16 +421,16 @@ class ControllerExtensionModuleGetresponse extends Controller
 				}
 
 				$grContact = $this->get_response->getContacts(
-						['query' => ['campaignId' => $gr_campaign->campaignId, 'email' => $row['email']]]
+						['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
 				);
 
-				$cycle_day = (!empty($grContact) && !empty($grContact->dayOfCycle)) ? $grContact->dayOfCycle : 0;
+				$cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : 0;
 
 				$params = [
 						'name' => $row['firstname'] . ' ' . $row['lastname'],
 						'email' => $row['email'],
 						'dayOfCycle' => $cycle_day,
-						'campaign' => ['campaignId' => $gr_campaign->campaignId],
+						'campaign' => ['campaignId' => $gr_campaign['campaignId']],
 						'customFieldValues' => $customs,
 						'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
                 ];
@@ -441,9 +438,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 				try {
 					$r = $this->get_response->addContact($params);
 
-					if (is_object($r) && !isset($r->code)) {
+					if (!isset($r['code'])) {
                         $queued++;
-                    } elseif (is_object($r) && isset($r->code) && $r->code == 1008) {
+                    } elseif (isset($r['code']) && $r['code'] == 1008) {
 						$duplicated++;
 					} else {
 						$not_added++;
@@ -466,20 +463,20 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	private function getCustomFieldId($name) {
-        $custom_field = (array) $this->get_response->getCustomFields(['query' => ['name' => $name]]);
+        $custom_field = $this->get_response->getCustomFields(['query' => ['name' => $name]]);
         $custom_field = reset($custom_field);
 
-		if (isset($custom_field->customFieldId) && !empty($custom_field->customFieldId)) {
-			return $custom_field->customFieldId;
+		if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
+			return $custom_field['customFieldId'];
 		}
 
 		$newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
 
 		$result = $this->get_response->setCustomField($newCustom);
 
-		if (!empty($this->custom_fields) && isset($result->customFieldId)) {
-			$this->custom_fields[$result->name] = $result->customFieldId;
-			return $result->customFieldId;
+		if (!empty($this->custom_fields) && isset($result['customFieldId'])) {
+			$this->custom_fields[$result['name']] = $result['customFieldId'];
+			return $result['customFieldId'];
 		}
 		return false;
 	}
@@ -497,18 +494,10 @@ class ControllerExtensionModuleGetresponse extends Controller
 		}
 
         $this->campaigns = [];
-
-		$campaigns = (array) $this->get_response->getCampaigns();
-
-		if (isset($campaigns->httpStatus) && $campaigns->httpStatus != 200) {
-			$this->session->data['error_warning'] = $this->campaigns->codeDescription;
-			$this->campaigns = [];
-		}
-
+		$campaigns = $this->get_response->getCampaigns();
 		foreach ($campaigns as $campaign) {
-		    $this->campaigns[$campaign->campaignId] = $campaign;
+		    $this->campaigns[$campaign['campaignId']] = $campaign;
         }
-
 		return $this->campaigns;
 	}
 

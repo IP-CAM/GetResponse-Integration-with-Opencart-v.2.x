@@ -34,6 +34,9 @@ class GetResponseApiV3
      */
     private $app_id = 'e0b666d6-f97f-485b-8dd4-8b9be196963b';
 
+    /** @var array */
+    private $headers;
+
     /**
      * Set api key and optionally API endpoint
      * @param      $api_key
@@ -59,30 +62,23 @@ class GetResponseApiV3
     }
 
     /**
-     * get account details
-     *
-     * @return mixed
-     */
-    public function accounts()
-    {
-        return $this->call('accounts');
-    }
-
-    /**
-     * @return mixed
-     */
-    public function ping()
-    {
-        return $this->accounts();
-    }
-
-    /**
      * Return all campaigns
      * @return mixed
      */
     public function getCampaigns()
     {
-        return $this->call('campaigns');
+        $params['perPage'] = 100;
+        $params['page'] = 1;
+        $result = (array) $this->call('campaigns?' . $this->setParams($params), 'GET', [], true);
+        $headers = $this->getHeaders();
+
+        for($i = 2; $i <= $headers['TotalPages']; $i++) {
+            $params['page'] = $i;
+            $res = (array) $this->call('campaigns?' . $this->setParams($params), 'GET', []);
+            $result = array_merge($result, $res);
+        }
+
+        return $result;
     }
 
     /**
@@ -90,58 +86,20 @@ class GetResponseApiV3
      * @param null $params
      * @return mixed
      */
-    public function getAutoresponders($params = null)
+    public function getAutoresponders($params = [])
     {
-        return $this->call('autoresponders', 'GET', $params);
-    }
+        $params['perPage'] = 100;
+        $params['page'] = 1;
+        $result = (array) $this->call('autoresponders?' . $this->setParams($params), 'GET', [], true);
+        $headers = $this->getHeaders();
 
-    /**
-     * get single campaign
-     * @param string $campaign_id retrieved using API
-     * @return mixed
-     */
-    public function getCampaign($campaign_id)
-    {
-        return $this->call('campaigns/' . $campaign_id);
-    }
+        for($i = 2; $i <= $headers['TotalPages']; $i++) {
+            $params['page'] = $i;
+            $res = (array) $this->call('autoresponders?' . $this->setParams($params), 'GET', []);
+            $result = array_merge($result, $res);
+        }
 
-    /**
-     * adding campaign
-     * @param $params
-     * @return mixed
-     */
-    public function createCampaign($params)
-    {
-        return $this->call('campaigns', 'POST', $params);
-    }
-
-    /**
-     * list all RSS newsletters
-     * @return mixed
-     */
-    public function getRSSNewsletters()
-    {
-        return $this->call('rss-newsletters', 'GET', null);
-    }
-
-    /**
-     * send one newsletter
-     *
-     * @param $params
-     * @return mixed
-     */
-    public function sendNewsletter($params)
-    {
-        return $this->call('newsletters', 'POST', $params);
-    }
-
-    /**
-     * @param $params
-     * @return mixed
-     */
-    public function sendDraftNewsletter($params)
-    {
-        return $this->call('newsletters/send-draft', 'POST', $params);
+        return $result;
     }
 
     /**
@@ -156,72 +114,6 @@ class GetResponseApiV3
     }
 
     /**
-     * retrieving contact by id
-     *
-     * @param string $contact_id - contact id obtained by API
-     * @return mixed
-     */
-    public function getContact($contact_id)
-    {
-        return $this->call('contacts/' . $contact_id);
-    }
-
-
-    /**
-     * search contacts
-     *
-     * @param $params
-     * @return mixed
-     */
-    public function searchContacts($params = null)
-    {
-        return $this->call('search-contacts?' . $this->setParams($params));
-    }
-
-    /**
-     * retrieve segment
-     *
-     * @param $id
-     * @return mixed
-     */
-    public function getContactsSearch($id)
-    {
-        return $this->call('search-contacts/' . $id);
-    }
-
-    /**
-     * add contacts search
-     *
-     * @param $params
-     * @return mixed
-     */
-    public function addContactsSearch($params)
-    {
-        return $this->call('search-contacts/', 'POST', $params);
-    }
-
-    /**
-     * add contacts search
-     *
-     * @param $id
-     * @return mixed
-     */
-    public function deleteContactsSearch($id)
-    {
-        return $this->call('search-contacts/' . $id, 'DELETE');
-    }
-
-    /**
-     * get contact activities
-     * @param $contact_id
-     * @return mixed
-     */
-    public function getContactActivities($contact_id)
-    {
-        return $this->call('contacts/' . $contact_id . '/activities');
-    }
-
-    /**
      * retrieving contact by params
      * @param array $params
      *
@@ -230,29 +122,6 @@ class GetResponseApiV3
     public function getContacts($params = [])
     {
         return $this->call('contacts?' . $this->setParams($params));
-    }
-
-    /**
-     * updating any fields of your subscriber (without email of course)
-     * @param       $contact_id
-     * @param array $params
-     *
-     * @return mixed
-     */
-    public function updateContact($contact_id, $params = [])
-    {
-        return $this->call('contacts/' . $contact_id, 'POST', $params);
-    }
-
-    /**
-     * drop single user by ID
-     *
-     * @param string $contact_id - obtained by API
-     * @return mixed
-     */
-    public function deleteContact($contact_id)
-    {
-        return $this->call('contacts/' . $contact_id, 'DELETE');
     }
 
     /**
@@ -275,28 +144,6 @@ class GetResponseApiV3
     public function setCustomField($params)
     {
         return $this->call('custom-fields', 'POST', $params);
-    }
-
-    /**
-     * retrieve single custom field
-     *
-     * @param $custom_id
-     * @return mixed
-     * @internal param string $cs_id obtained by API
-     */
-    public function getCustomField($custom_id)
-    {
-        return $this->call('custom-fields/' . $custom_id, 'GET');
-    }
-
-    /**
-     * retrieving billing information
-     *
-     * @return mixed
-     */
-    public function getBillingInfo()
-    {
-        return $this->call('accounts/billing');
     }
 
     /**
@@ -349,20 +196,12 @@ class GetResponseApiV3
      * @param null $api_method
      * @param string $http_method
      * @param array $params
+     * @param bool $withHeaders
      * @return mixed
-     * @throws Exception
      */
-    private function call($api_method = null, $http_method = 'GET', $params = [])
+    private function call($api_method = null, $http_method = 'GET', $params = [], $withHeaders = false)
     {
-        if (empty($api_method)) {
-            $obj = new \stdClass();
-            $obj->httpStatus = 400;
-            $obj->code = 1010;
-            $obj->codeDescription = 'Error in external resources';
-            $obj->message = 'Invalid api method';
-
-            return $obj;
-        }
+        $this->http_status = 401;
 
         $params = json_encode($params);
         $url = $this->api_url . '/' . $api_method;
@@ -373,7 +212,7 @@ class GetResponseApiV3
             CURLOPT_FRESH_CONNECT => 1,
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_TIMEOUT => $this->timeout,
-            CURLOPT_HEADER => false,
+            CURLOPT_HEADER => $withHeaders,
             CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
             CURLOPT_HTTPHEADER => ['X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json']
         ];
@@ -396,12 +235,20 @@ class GetResponseApiV3
         $curl = curl_init();
         curl_setopt_array($curl, $options);
 
-        $response = json_decode(curl_exec($curl));
-
+        $response = curl_exec($curl);
         $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
         curl_close($curl);
-        return (object)$response;
+
+        if (false === $response) {
+            return [];
+        }
+
+        if ($withHeaders) {
+            list($headers, $response) = explode("\r\n\r\n", $response, 2);
+            $this->headers = $this->prepareHeaders($headers);
+        }
+
+        return json_decode($response, true);
     }
 
     /**
@@ -420,4 +267,28 @@ class GetResponseApiV3
         return http_build_query($result);
     }
 
+    /**
+     * @param string $headers
+     * @return array
+     */
+    private function prepareHeaders( $headers ) {
+        $_headers = explode("\r\n", $headers);
+        $headers = array();
+        foreach ($_headers as $header) {
+            $params = explode(':', $header, 2);
+            $key = isset($params[0]) ? $params[0] : null;
+            $value = isset($params[1]) ? $params[1] : null;
+            $headers[trim($key)] = trim($value);
+        }
+        return $headers;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
 }

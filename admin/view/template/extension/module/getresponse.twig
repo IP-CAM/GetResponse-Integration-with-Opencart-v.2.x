@@ -240,10 +240,11 @@
             });
 
             function getCycleDays() {
+
                 var campaign_id = $('#getresponse-reg-campaign').val(),
                     day_element = $('#getresponse-reg-day'),
                     cycles_label = $('.sequence-day-label'),
-                    cycles = $.parseJSON('{% if campaign_days %} {{ campaign_days|json_encode() }} {% else %} {} {% endif %}');
+                    cycles = $.parseJSON(JSON.stringify({{ campaign_days_json }}));
 
                 cycles_label.hide();
                 day_element.text('');
