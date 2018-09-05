@@ -77,19 +77,19 @@ class ControllerExtensionModuleGetresponse extends Controller
         $apikey = $this->config->get('module_getresponse_apikey');
         $get_response = new GetResponseApiV3($apikey);
 
-        $custom_field = (array) $get_response->getCustomFields(['query' => ['name' => $name]]);
+        $custom_field = $get_response->getCustomFields(['query' => ['name' => $name]]);
         $custom_field = reset($custom_field);
 
-        if (isset($custom_field->customFieldId) && !empty($custom_field->customFieldId)) {
-            return $custom_field->customFieldId;
+        if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
+            return $custom_field['customFieldId'];
         }
 
         $newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
 
         $result = $get_response->setCustomField($newCustom);
 
-        if (isset($result->customFieldId)) {
-            return $result->customFieldId;
+        if (isset($result['customFieldId'])) {
+            return $result['customFieldId'];
         }
         return '';
 	}
