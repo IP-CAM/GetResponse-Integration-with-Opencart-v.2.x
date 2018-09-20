@@ -350,7 +350,7 @@ class ControllerExtensionModuleGetresponse extends Controller
                         'SSL'
                     ));
                 } catch (GetresponseApiException $e) {
-                    $this->session->data['error_warning'] = $e->getMessage();
+                    $this->session->data['error_warning'] = $e->getCode() . ' - ' . $e->getMessage();
                 }
             }
 		}

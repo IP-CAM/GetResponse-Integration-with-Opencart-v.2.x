@@ -6,11 +6,12 @@
 class GetresponseApiException extends \Exception
 {
     /**
-     * @param $error_message
+     * @param string $message
+     * @param int $code
      * @return GetresponseApiException
      */
-    public static function create_for_invalid_curl_response($error_message)
+    public static function create_for_invalid_curl_response($message, $code)
     {
-        return new self('CURL Error: ' . $error_message);
+        return new self('CURL Error: ' . $message, $code);
     }
 }
