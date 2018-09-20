@@ -64,6 +64,19 @@ class GetResponseApiV3
     /**
      * Return all campaigns
      * @return mixed
+     * @throws GetresponseApiException
+     */
+    public function getAccount()
+    {
+        $result = (array) $this->call('accounts');
+        if (!isset($result['accountId'])) {
+            throw new GetresponseApiException('Cannot load account details.');
+        }
+    }
+
+    /**
+     * Return all campaigns
+     * @return mixed
      */
     public function getCampaigns()
     {
@@ -198,6 +211,7 @@ class GetResponseApiV3
      * @param array $params
      * @param bool $withHeaders
      * @return mixed
+     * @throws GetresponseApiException
      */
     private function call($api_method = null, $http_method = 'GET', $params = [], $withHeaders = false)
     {
@@ -237,11 +251,16 @@ class GetResponseApiV3
 
         $response = curl_exec($curl);
         $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
 
-        if (false === $response) {
-            return [];
+        if (false === $response || true) {
+
+            //$errorMessage = curl_error($curl);
+            $errorMessage = 'Curl Error 33343';
+            curl_close( $curl );
+            throw GetresponseApiException::create_for_invalid_curl_response($errorMessage);
         }
+
+        curl_close($curl);
 
         if ($withHeaders) {
             list($headers, $response) = explode("\r\n\r\n", $response, 2);
