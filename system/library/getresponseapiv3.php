@@ -19,9 +19,6 @@ class GetResponseApiV3
     /** @var int */
     private $timeout = 10;
 
-    /** @var string */
-    public $http_status;
-
     /**
      * X-Domain header value if empty header will be not provided
      * @var string|null
@@ -215,8 +212,6 @@ class GetResponseApiV3
      */
     private function call($api_method = null, $http_method = 'GET', $params = [], $withHeaders = false)
     {
-        $this->http_status = 401;
-
         $params = json_encode($params);
         $url = $this->api_url . '/' . $api_method;
 
@@ -250,14 +245,12 @@ class GetResponseApiV3
         curl_setopt_array($curl, $options);
 
         $response = curl_exec($curl);
-        $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        if (false === $response || true) {
-
-            //$errorMessage = curl_error($curl);
-            $errorMessage = 'Curl Error 33343';
-            curl_close( $curl );
-            throw GetresponseApiException::create_for_invalid_curl_response($errorMessage);
+        if (false === $response) {
+            throw GetresponseApiException::create_for_invalid_curl_response(
+                curl_error($curl),
+                curl_getinfo($curl, CURLINFO_HTTP_CODE)
+            );
         }
 
         curl_close($curl);
