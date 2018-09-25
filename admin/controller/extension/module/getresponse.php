@@ -327,27 +327,32 @@ class ControllerExtensionModuleGetresponse extends Controller
             // new connection
             } else {
 
-		        $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
+                try {
+                    $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
 
-                if (!$this->checkApiKey($apiKey)) {
-                    $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
-                } else {
-                    $data = [
-                        'module_getresponse_status' => 1,
-                        'module_getresponse_apikey' => $apiKey
-                    ];
+                    if (!$this->checkApiKey($apiKey)) {
+                        $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
+                    } else {
+                        $data = [
+                            'module_getresponse_status' => 1,
+                            'module_getresponse_apikey' => $apiKey
+                        ];
 
-                    $this->model_setting_setting->editSetting('module_getresponse', $data);
-                    $this->session->data['success'] = $this->language->get('text_success');
+                        $this->model_setting_setting->editSetting('module_getresponse', $data);
+                        $this->session->data['success'] = $this->language->get('text_success');
+                    }
+
+
+                    $this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
+
+                    $this->response->redirect($this->url->link(
+                        'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+                        'SSL'
+                    ));
+                } catch (GetresponseApiException $e) {
+                    $this->session->data['error_warning'] = $e->getCode() . ' - ' . $e->getMessage();
                 }
             }
-
-			$this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
-
-			$this->response->redirect($this->url->link(
-                'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
-                'SSL'
-            ));
 		}
 
 		return $data;
@@ -364,9 +369,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 			return true;
 		}
 
-		$get_response = new GetResponseApiV3($apikey);
-		$campaigns = $get_response->getCampaigns();
-		return !empty($campaigns);
+        $get_response = new GetResponseApiV3($apikey);
+        $get_response->getAccount();
+        return true;
 	}
 
 	/**

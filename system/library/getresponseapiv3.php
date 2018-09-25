@@ -19,9 +19,6 @@ class GetResponseApiV3
     /** @var int */
     private $timeout = 10;
 
-    /** @var string */
-    public $http_status;
-
     /**
      * X-Domain header value if empty header will be not provided
      * @var string|null
@@ -59,6 +56,19 @@ class GetResponseApiV3
     function __set($key, $value)
     {
         $this->{$key} = $value;
+    }
+
+    /**
+     * Return all campaigns
+     * @return mixed
+     * @throws GetresponseApiException
+     */
+    public function getAccount()
+    {
+        $result = (array) $this->call('accounts');
+        if (!isset($result['accountId'])) {
+            throw new GetresponseApiException('Cannot load account details.');
+        }
     }
 
     /**
@@ -198,11 +208,10 @@ class GetResponseApiV3
      * @param array $params
      * @param bool $withHeaders
      * @return mixed
+     * @throws GetresponseApiException
      */
     private function call($api_method = null, $http_method = 'GET', $params = [], $withHeaders = false)
     {
-        $this->http_status = 401;
-
         $params = json_encode($params);
         $url = $this->api_url . '/' . $api_method;
 
@@ -236,12 +245,15 @@ class GetResponseApiV3
         curl_setopt_array($curl, $options);
 
         $response = curl_exec($curl);
-        $this->http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
 
         if (false === $response) {
-            return [];
+            throw GetresponseApiException::create_for_invalid_curl_response(
+                curl_error($curl),
+                curl_getinfo($curl, CURLINFO_HTTP_CODE)
+            );
         }
+
+        curl_close($curl);
 
         if ($withHeaders) {
             list($headers, $response) = explode("\r\n\r\n", $response, 2);
