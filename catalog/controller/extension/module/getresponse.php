@@ -9,7 +9,6 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 	public function index() {
 		$form = $this->config->get('module_getresponse_form');
-
 		if (!isset($form['active']) || $form['active'] == 0 || strlen($form['url']) < 15) {
 			return false;
 		}
@@ -74,6 +73,7 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return string
      */
 	private function getCustomFieldId($name) {
+
         $apikey = $this->config->get('module_getresponse_apikey');
         $get_response = new GetResponseApiV3($apikey);
 
