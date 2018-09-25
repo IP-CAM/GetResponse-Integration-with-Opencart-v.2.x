@@ -5,3 +5,4 @@ admin/view/template/extension/module/getresponse.twig
 catalog/controller/extension/module/getresponse.php
 catalog/view/theme/default/template/extension/module/getresponse.twig
 system/library/getresponseapiv3.php
+system/library/getresponseApiException.php

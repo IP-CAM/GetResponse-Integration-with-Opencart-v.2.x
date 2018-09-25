@@ -7,6 +7,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 {
 	private $error = [];
 	private $gr_apikey;
+
+	/** @var GetResponseApiV3 */
 	private $get_response;
 	private $campaigns;
 	private $campaign;
@@ -27,23 +29,23 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	public function index() {
-    
+
 		$this->load->language('extension/module/getresponse');
 		$this->load->model('localisation/language');
 		$this->load->model('design/layout');
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$data = [];
-    $data['is_connected'] = false;
-
+        $data['is_connected'] = false;
 		$data = $this->saveSettings($data);
 		$data = $this->assignLanguage($data);
 		$data = $this->assignSettings($data);
 		$data = $this->assignBreadcrumbs($data);
 
 		if (!empty($this->gr_apikey)) {
-		  $data['is_connected'] = true;
+		    $data['is_connected'] = true;
 			$data = $this->assignAutoresponders($data);
+			$data['campaign_days_json'] = json_encode($data['campaign_days']);
 			$data = $this->assignForms($data);
 			$data['campaigns'] = $this->getCampaigns();
 		}
@@ -89,7 +91,7 @@ class ControllerExtensionModuleGetresponse extends Controller
             'SSL'
         ));
 	}
-  
+
     /**
      * @param array $data
      *
@@ -97,24 +99,19 @@ class ControllerExtensionModuleGetresponse extends Controller
      */
 	private function assignAutoresponders($data) {
 		$autoresponders = $this->get_response->getAutoresponders();
+
 		$data['campaign_days'] = [];
 
-		if (isset($autoresponders->httpStatus) && $autoresponders->httpStatus != 200) {
-			$this->session->data['error_warning'] = $autoresponders->codeDescription;
-
-			return $data;
-		}
-
-		if (!empty($autoresponders) && is_object($autoresponders)) {
+		if (!empty($autoresponders)) {
 			foreach ($autoresponders as $autoresponder) {
-				if ($autoresponder->triggerSettings->dayOfCycle == null) {
+				if ($autoresponder['triggerSettings']['dayOfCycle'] == null) {
 					continue;
 				}
 
-				$data['campaign_days'][$autoresponder->triggerSettings->subscribedCampaign->campaignId][$autoresponder->triggerSettings->dayOfCycle] = [
-						'day' => $autoresponder->triggerSettings->dayOfCycle,
-						'name' => $autoresponder->subject,
-						'status' => $autoresponder->status
+				$data['campaign_days'][$autoresponder['triggerSettings']['subscribedCampaign']['campaignId']][$autoresponder['triggerSettings']['dayOfCycle']] = [
+                    'day' => $autoresponder['triggerSettings']['dayOfCycle'],
+                    'name' => $autoresponder['subject'],
+                    'status' => $autoresponder['status']
                 ];
 			}
 		}
@@ -134,8 +131,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($forms)) {
 			foreach ($forms as $form) {
-				if (isset($form->formId) && !empty($form->formId) && $form->status == 'published') {
-					$new_forms[] = ['id' => $form->formId, 'name' => $form->name, 'url' => $form->scriptUrl];
+				if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
+					$new_forms[] = ['id' => $form['formId'], 'name' => $form['name'], 'url' => $form['scriptUrl']];
 				}
 			}
 		}
@@ -144,8 +141,8 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($webforms)) {
 			foreach ($webforms as $form) {
-				if (isset($form->webformId) && !empty($form->webformId) && $form->status == 'enabled') {
-					$old_forms[] = ['id' => $form->webformId, 'name' => $form->name, 'url' => $form->scriptUrl];
+				if (isset($form['webformId']) && !empty($form['webformId']) && $form['status'] == 'enabled') {
+					$old_forms[] = ['id' => $form['webformId'], 'name' => $form['name'], 'url' => $form['scriptUrl']];
 				}
 			}
 		}
@@ -270,7 +267,7 @@ class ControllerExtensionModuleGetresponse extends Controller
             $data['active_tab'] = 'home';
         }
 
-    $apiKey = strlen($this->gr_apikey) > 0 ? str_repeat("*", strlen($this->gr_apikey) - 6) . substr($this->gr_apikey, -6) : '';
+        $apiKey = strlen($this->gr_apikey) > 0 ? str_repeat("*", strlen($this->gr_apikey) - 6) . substr($this->gr_apikey, -6) : '';
 		$data['getresponse_apikey'] = $this->gr_apikey;
 		$data['getresponse_hidden_apikey'] = $apiKey;
 		$data['getresponse_campaign'] = $this->campaign;
@@ -289,7 +286,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->load->model('setting/setting');
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 
-        // update settings (connected)
+            // update settings (connected)
 		    if (!empty($this->gr_apikey)) {
 
 		        $form_id = false;
@@ -309,48 +306,53 @@ class ControllerExtensionModuleGetresponse extends Controller
                             $webform = $this->get_response->getForm($params[1]);
                         }
 
-                        if (isset($webform->scriptUrl)) {
-                            $this->request->post['module_getresponse_form']['url'] = $webform->scriptUrl;
+                        if (isset($webform['scriptUrl'])) {
+                            $this->request->post['module_getresponse_form']['url'] = $webform['scriptUrl'];
                             $this->request->post['module_getresponse_form']['id'] = $params[1];
                         }
                     }
                 }
 
-                $data = [
-                    'module_getresponse_status' => 1,
-                        'module_getresponse_apikey' => $this->gr_apikey,
-                    'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
-                    'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
-                    'module_getresponse_form' => $this->request->post['module_getresponse_form']
-                    ];
+		        $data = [
+		            'module_getresponse_status' => 1,
+                    'module_getresponse_apikey' => $this->gr_apikey,
+		            'module_getresponse_campaign' => $this->request->post['module_getresponse_campaign'],
+		            'module_getresponse_reg' => $this->request->post['module_getresponse_reg'],
+		            'module_getresponse_form' => $this->request->post['module_getresponse_form']
+                ];
 
-                    $this->model_setting_setting->editSetting('module_getresponse', $data);
-                    $this->session->data['success'] = $this->language->get('text_success');
+                $this->model_setting_setting->editSetting('module_getresponse', $data);
+                $this->session->data['success'] = $this->language->get('text_success');
 
             // new connection
             } else {
 
-		            $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
+                try {
+                    $apiKey = $this->request->post['module_getresponse_hidden_apikey'];
 
-                if (!$this->checkApiKey($apiKey)) {
-                    $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
-                } else {
-                    $data = [
-                        'module_getresponse_status' => 1,
-                        'module_getresponse_apikey' => $apiKey
-                    ];
+                    if (!$this->checkApiKey($apiKey)) {
+                        $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
+                    } else {
+                        $data = [
+                            'module_getresponse_status' => 1,
+                            'module_getresponse_apikey' => $apiKey
+                        ];
 
-                    $this->model_setting_setting->editSetting('module_getresponse', $data);
-                    $this->session->data['success'] = $this->language->get('text_success');
+                        $this->model_setting_setting->editSetting('module_getresponse', $data);
+                        $this->session->data['success'] = $this->language->get('text_success');
+                    }
+
+
+                    $this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
+
+                    $this->response->redirect($this->url->link(
+                        'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
+                        'SSL'
+                    ));
+                } catch (GetresponseApiException $e) {
+                    $this->session->data['error_warning'] = $e->getCode() . ' - ' . $e->getMessage();
                 }
             }
-
-			$this->session->data['active_tab'] = $this->request->post['module_getresponse_form']['current_tab'];
-
-			$this->response->redirect($this->url->link(
-                'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
-                'SSL'
-            ));
 		}
 
 		return $data;
@@ -367,10 +369,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 			return true;
 		}
 
-		$get_response = new GetResponseApiV3($apikey);
-		$campaigns = $get_response->getCampaigns();
-
-		return !(isset($campaigns->httpStatus) && $campaigns->httpStatus != 200);
+        $get_response = new GetResponseApiV3($apikey);
+        $get_response->getAccount();
+        return true;
 	}
 
 	/**
@@ -399,7 +400,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 
 		if (!empty($campaigns)) {
 			foreach ($campaigns as $campaign) {
-				if ($campaign->campaignId === $this->campaign) {
+				if ($campaign['campaignId'] === $this->campaign) {
 					$gr_campaign = $campaign;
 				}
 			}
@@ -425,16 +426,16 @@ class ControllerExtensionModuleGetresponse extends Controller
 				}
 
 				$grContact = $this->get_response->getContacts(
-						['query' => ['campaignId' => $gr_campaign->campaignId, 'email' => $row['email']]]
+						['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
 				);
 
-				$cycle_day = (!empty($grContact) && !empty($grContact->dayOfCycle)) ? $grContact->dayOfCycle : 0;
+				$cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : 0;
 
 				$params = [
 						'name' => $row['firstname'] . ' ' . $row['lastname'],
 						'email' => $row['email'],
 						'dayOfCycle' => $cycle_day,
-						'campaign' => ['campaignId' => $gr_campaign->campaignId],
+						'campaign' => ['campaignId' => $gr_campaign['campaignId']],
 						'customFieldValues' => $customs,
 						'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
                 ];
@@ -442,9 +443,9 @@ class ControllerExtensionModuleGetresponse extends Controller
 				try {
 					$r = $this->get_response->addContact($params);
 
-					if (is_object($r) && !isset($r->code)) {
+					if (!isset($r['code'])) {
                         $queued++;
-                    } elseif (is_object($r) && isset($r->code) && $r->code == 1008) {
+                    } elseif (isset($r['code']) && $r['code'] == 1008) {
 						$duplicated++;
 					} else {
 						$not_added++;
@@ -467,20 +468,20 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	private function getCustomFieldId($name) {
-        $custom_field = (array) $this->get_response->getCustomFields(['query' => ['name' => $name]]);
+        $custom_field = $this->get_response->getCustomFields(['query' => ['name' => $name]]);
         $custom_field = reset($custom_field);
 
-		if (isset($custom_field->customFieldId) && !empty($custom_field->customFieldId)) {
-			return $custom_field->customFieldId;
+		if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
+			return $custom_field['customFieldId'];
 		}
 
 		$newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
 
 		$result = $this->get_response->setCustomField($newCustom);
 
-		if (!empty($this->custom_fields) && isset($result->customFieldId)) {
-			$this->custom_fields[$result->name] = $result->customFieldId;
-			return $result->customFieldId;
+		if (!empty($this->custom_fields) && isset($result['customFieldId'])) {
+			$this->custom_fields[$result['name']] = $result['customFieldId'];
+			return $result['customFieldId'];
 		}
 		return false;
 	}
@@ -498,28 +499,21 @@ class ControllerExtensionModuleGetresponse extends Controller
 		}
 
         $this->campaigns = [];
-
-		$campaigns = (array) $this->get_response->getCampaigns();
-
-		if (isset($campaigns->httpStatus) && $campaigns->httpStatus != 200) {
-			$this->session->data['error_warning'] = $this->campaigns->codeDescription;
-			$this->campaigns = [];
-		}
-
+		$campaigns = $this->get_response->getCampaigns();
 		foreach ($campaigns as $campaign) {
-		    $this->campaigns[$campaign->campaignId] = $campaign;
+		    $this->campaigns[$campaign['campaignId']] = $campaign;
         }
-
 		return $this->campaigns;
 	}
 
 	public function install() {
-      $this->load->model('setting/event');
-		  $this->model_setting_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
-  }
+        $this->load->model('setting/event');
+		$this->model_setting_event->addEvent('getresponse', 'catalog/model/account/customer/addCustomer/after', 'extension/module/getresponse/on_customer_add');
+
+    }
 
 	public function uninstall() {
-      $this->load->model('setting/event');
-		  $this->model_setting_event->deleteEvent('getresponse');
+        $this->load->model('setting/event');
+		$this->model_setting_event->deleteEvent('getresponse');
 	}
 }
