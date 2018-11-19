@@ -36,12 +36,14 @@ class GetResponseApiV3
 
     /**
      * Set api key and optionally API endpoint
-     * @param      $api_key
-     * @param null $api_url
+     * @param string      $api_key
+     * @param null|string $api_url
+     * @param null|string $domain
      */
-    public function __construct($api_key, $api_url = null)
+    public function __construct($api_key, $api_url = null, $domain = null)
     {
         $this->api_key = $api_key;
+        $this->enterprise_domain = $domain;
 
         if (!empty($api_url)) {
             $this->api_url = $api_url;
