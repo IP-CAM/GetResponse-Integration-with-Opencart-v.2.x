@@ -48,6 +48,7 @@ $_['entry_guest_integration']    = 'Guest Checkout integration:<span class="help
 // Error
 $_['error_permission']           = 'Warning: You do not have permission to modify module GetResponse!';
 $_['error_apikey']               = 'Apikey required!';
+$_['error_domain']               = 'Domain required!';
 $_['error_incorrect_apikey']               = 'Error! Incorrect apikey!';
 $_['text_edit']               = 'Getresponse settings';
 $_['exporting_button']               = 'Exporting...';
