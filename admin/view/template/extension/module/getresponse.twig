@@ -83,6 +83,32 @@
                                            value="{{ getresponse_apikey }}" size="50"/>
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <div class="col-sm-10 col-sm-offset-2">
+                                    <label for="getresponse-enterprise" class="gr-normal-label">
+                                        <input type="checkbox"
+                                               {% if getresponse_domain is not empty %}checked{% endif %}
+                                               id="getresponse-enterprise" name="getresponse-enterprise"/>
+                                        {{ enterprise_package}}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group enterprise-package">
+                                <div class="col-sm-2 control-label"><label for="getresponse-account-type">{{ account_type }}</label></div>
+                                <div class="col-sm-10">
+                                    <select id="getresponse-account-type" class="form-control" name="getresponse-account-type">
+                                        <option value="https://api3.getresponse360.com/v3"{% if getresponse_apiurl == 'https://api3.getresponse360.com/v3' %} selected{% endif %}>{{ enterprise_package_com }}</option>
+                                        <option value="https://api3.getresponse360.pl/v3"{% if getresponse_apiurl == 'https://api3.getresponse360.pl/v3' %} selected{% endif %}>{{ enterprise_package_pl }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group enterprise-package">
+                                <div class="col-sm-2 control-label"><label for="getresponse-account-domain">{{ your_domain }}</label></div>
+                                <div class="col-sm-10">
+                                    <input type="text" name="getresponse-account-domain" class="form-control" value="{{ getresponse_domain }}" id="getresponse-account-domain" />
+                                    <span class="help-block">{{ your_domain_help }}</span>
+                                </div>
+                            </div>
                         </div>
                         {% if getresponse_apikey %}
                             <div role="tabpanel" class="tab-pane {% if active_tab == 'export' %}active {% endif %}"
@@ -119,7 +145,7 @@
                                 <div class="form-group">
                                     <label for="getresponse-reg-active" class="col-sm-2 control-label">{{ label_active }}</label>
                                     <div class="col-sm-10">
-                                            <label class="radio-inline" for="getresponse-reg-active"><input type="radio" id="getresponse-reg-active" {% if '1' == getresponse_reg['active'] %} checked {% endif %} name="module_getresponse_reg[active]" value="1">{{ label_yes }}</label>
+                                        <label class="radio-inline" for="getresponse-reg-active"><input type="radio" id="getresponse-reg-active" {% if '1' == getresponse_reg['active'] %} checked {% endif %} name="module_getresponse_reg[active]" value="1">{{ label_yes }}</label>
                                         <label for="" class="radio-inline"><input type="radio" {% if getresponse_reg['active'] != 1 %} checked {% endif %} name="module_getresponse_reg[active]" value="0">{{ label_no }}</label>
                                     </div>
                                 </div>
@@ -170,7 +196,7 @@
                                         <label class="radio-inline">
                                             <input name="module_getresponse_form[active]" type="radio"
                                                    id="getresponse-form-active"
-                                                   {% if getresponse_form['active'] == 1 %} checked {% endif %}
+                                                    {% if getresponse_form['active'] == 1 %} checked {% endif %}
                                                    value="1">{{ label_yes }}
                                         </label>
                                         <label class="radio-inline">
@@ -219,6 +245,12 @@
         </div>
     </div>
 
+    <style>
+        .gr-normal-label {
+            font-weight: normal;
+        }
+    </style>
+
     <script type="text/javascript">
         <!--
         $(function () {
@@ -226,6 +258,14 @@
             var export_element = $('#gr-export');
             var tab_element = $("li[role='presentation']");
             var current_tab_input = $('#getresponse-current-tab');
+
+            $('#getresponse-enterprise').bind('change', function () {
+                if ($(this).is(':checked')) {
+                    $('.enterprise-package').removeClass('hidden');
+                } else {
+                    $('.enterprise-package').addClass('hidden');
+                }
+            }).trigger('change');
 
             $('button#save').bind('click', function () {
                 $('#form').submit();
