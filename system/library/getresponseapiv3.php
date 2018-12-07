@@ -1,5 +1,5 @@
 <?php
-
+require_once('getresponseApiException.php');
 /**
  * GetResponse API v3 client library
  *
