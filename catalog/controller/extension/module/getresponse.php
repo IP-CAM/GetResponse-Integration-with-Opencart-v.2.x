@@ -36,13 +36,16 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->load->model('account/customer');
 		$customer = $this->model_account_customer->getCustomer($customer_id);
 		$settings = $this->config->get('module_getresponse_reg');
-		$apikey = $this->config->get('module_getresponse_apikey');
 
 		if ($settings['active'] == 0 || $customer['newsletter'] == 0) {
 			return true;
 		}
 
-		$get_response = new GetResponseApiV3($apikey);
+		$get_response = new GetResponseApiV3(
+            $this->config->get('module_getresponse_apikey'),
+            $this->config->get('module_getresponse_apiurl'),
+            $this->config->get('module_getresponse_domain')
+        );
 		$customs = [];
 		$customs[] = ['customFieldId' => $this->getCustomFieldId('origin'), 'value' => ['OpenCart']];
 
@@ -74,8 +77,11 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return string
      */
 	private function getCustomFieldId($name) {
-        $apikey = $this->config->get('module_getresponse_apikey');
-        $get_response = new GetResponseApiV3($apikey);
+        $get_response = new GetResponseApiV3(
+            $this->config->get('module_getresponse_apikey'),
+            $this->config->get('module_getresponse_apiurl'),
+            $this->config->get('module_getresponse_domain')
+        );
 
         $custom_field = $get_response->getCustomFields(['query' => ['name' => $name]]);
         $custom_field = reset($custom_field);
