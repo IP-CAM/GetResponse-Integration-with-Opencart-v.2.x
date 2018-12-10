@@ -453,12 +453,6 @@ class ControllerExtensionModuleGetresponse extends Controller
 				}
 
 				try {
-                    $grContact = $this->get_response->getContacts(
-                        ['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
-                    );
-
-                    $cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : null;
-
                     $params = [
                         'name' => trim($row['firstname'] . ' ' . $row['lastname']),
                         'email' => $row['email'],
@@ -466,10 +460,6 @@ class ControllerExtensionModuleGetresponse extends Controller
                         'customFieldValues' => $customs,
                         'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
                     ];
-
-                    if (null !== $cycle_day) {
-                        $params['dayOfCycle'] = $cycle_day;
-                    }
 
 					$r = $this->get_response->addContact($params);
 
