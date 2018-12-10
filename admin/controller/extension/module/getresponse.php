@@ -457,7 +457,7 @@ class ControllerExtensionModuleGetresponse extends Controller
                         ['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
                     );
 
-                    $cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : 0;
+                    $cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : null;
 
                     $params = [
                         'name' => trim($row['firstname'] . ' ' . $row['lastname']),
