@@ -462,11 +462,14 @@ class ControllerExtensionModuleGetresponse extends Controller
                     $params = [
                         'name' => trim($row['firstname'] . ' ' . $row['lastname']),
                         'email' => $row['email'],
-                        'dayOfCycle' => $cycle_day,
                         'campaign' => ['campaignId' => $gr_campaign['campaignId']],
                         'customFieldValues' => $customs,
                         'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
                     ];
+
+                    if (null !== $cycle_day) {
+                        $params['dayOfCycle'] = $cycle_day;
+                    }
 
 					$r = $this->get_response->addContact($params);
 
