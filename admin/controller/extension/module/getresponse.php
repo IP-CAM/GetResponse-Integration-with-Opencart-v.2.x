@@ -98,29 +98,27 @@ class ControllerExtensionModuleGetresponse extends Controller
      */
 	private function assignAutoresponders($data) {
         try {
-            $autoresponders = $this->get_response->getAutoresponders();
-        } catch (GetresponseApiException $e) {
-            $this->session->data['error_warning'] = $e->getMessage();
-            $autoresponders = [];
-        }
+            $autoresponders = (array) $this->get_response->getAutoresponders();
 
-        $data['campaign_days'] = [];
+            $data['campaign_days'] = [];
 
-		if (!empty($autoresponders)) {
-			foreach ($autoresponders as $autoresponder) {
-				if ($autoresponder['triggerSettings']['dayOfCycle'] == null) {
-					continue;
-				}
+            foreach ($autoresponders as $autoresponder) {
+                if ($autoresponder['triggerSettings']['dayOfCycle'] == null) {
+                    continue;
+                }
 
-				$data['campaign_days'][$autoresponder['triggerSettings']['subscribedCampaign']['campaignId']][$autoresponder['triggerSettings']['dayOfCycle']] = [
+                $data['campaign_days'][$autoresponder['triggerSettings']['subscribedCampaign']['campaignId']][$autoresponder['triggerSettings']['dayOfCycle']] = [
                     'day' => $autoresponder['triggerSettings']['dayOfCycle'],
                     'name' => $autoresponder['subject'],
                     'status' => $autoresponder['status']
                 ];
-			}
-		}
+            }
 
-		return $data;
+            return $data;
+        } catch (GetresponseApiException $e) {
+            $this->session->data['error_warning'] = $e->getMessage();
+            return $data;
+        }
 	}
 
     /**
@@ -131,36 +129,31 @@ class ControllerExtensionModuleGetresponse extends Controller
 	private function assignForms($data) {
 
         try {
-            $forms = $this->get_response->getForms();
-            $new_forms = [];
-            $old_forms = [];
+            $new_forms = $old_forms = [];
+            $forms = (array) $this->get_response->getForms();
+            $webforms = (array) $this->get_response->getWebForms();
 
-            if (!empty($forms)) {
-                foreach ($forms as $form) {
-                    if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
-                        $new_forms[] = ['id' => $form['formId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
-                    }
+            foreach ($forms as $form) {
+                if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
+                    $new_forms[] = ['id' => $form['formId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
                 }
             }
 
-            $webforms = $this->get_response->getWebForms();
+            foreach ($webforms as $form) {
+                if (isset($form['webformId']) && !empty($form['webformId']) && $form['status'] == 'enabled') {
+                    $old_forms[] = ['id' => $form['webformId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
+                }
+            }
+
+            $data['new_forms'] = $new_forms;
+            $data['old_forms'] = $old_forms;
+
+            return $data;
+
         } catch (GetresponseApiException $e) {
             $this->session->data['error_warning'] = $e->getMessage();
-            $webforms = [];
+            return $data;
         }
-
-        if (!empty($webforms)) {
-			foreach ($webforms as $form) {
-				if (isset($form['webformId']) && !empty($form['webformId']) && $form['status'] == 'enabled') {
-					$old_forms[] = ['id' => $form['webformId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
-				}
-			}
-		}
-
-		$data['new_forms'] = $new_forms;
-		$data['old_forms'] = $old_forms;
-
-		return $data;
 	}
 
 	/**
@@ -529,17 +522,19 @@ class ControllerExtensionModuleGetresponse extends Controller
 	 * @return array
 	 */
 	private function getCampaigns() {
-	    $campaigns = [];
         try {
+            $campaigns = [];
             $response = $this->get_response->getCampaigns();
+
+            foreach ($response as $campaign) {
+                $campaigns[$campaign['campaignId']] = $campaign;
+            }
+
+            return $campaigns;
         } catch (GetresponseApiException $e) {
             $this->session->data['error_warning'] = $e->getMessage();
-            $response = [];
+            return [];
         }
-        foreach ($response as $campaign) {
-		    $campaigns[$campaign['campaignId']] = $campaign;
-        }
-		return $campaigns;
 	}
 
 	public function install() {
