@@ -97,9 +97,14 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return mixed
      */
 	private function assignAutoresponders($data) {
-		$autoresponders = $this->get_response->getAutoresponders();
+        try {
+            $autoresponders = $this->get_response->getAutoresponders();
+        } catch (GetresponseApiException $e) {
+            $this->session->data['error_warning'] = $e->getMessage();
+            $autoresponders = [];
+        }
 
-		$data['campaign_days'] = [];
+        $data['campaign_days'] = [];
 
 		if (!empty($autoresponders)) {
 			foreach ($autoresponders as $autoresponder) {
@@ -124,21 +129,27 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return mixed
      */
 	private function assignForms($data) {
-		$forms = $this->get_response->getForms();
-		$new_forms = [];
-		$old_forms = [];
 
-		if (!empty($forms)) {
-			foreach ($forms as $form) {
-				if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
-					$new_forms[] = ['id' => $form['formId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
-				}
-			}
-		}
+        try {
+            $forms = $this->get_response->getForms();
+            $new_forms = [];
+            $old_forms = [];
 
-		$webforms = $this->get_response->getWebForms();
+            if (!empty($forms)) {
+                foreach ($forms as $form) {
+                    if (isset($form['formId']) && !empty($form['formId']) && $form['status'] == 'published') {
+                        $new_forms[] = ['id' => $form['formId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
+                    }
+                }
+            }
 
-		if (!empty($webforms)) {
+            $webforms = $this->get_response->getWebForms();
+        } catch (GetresponseApiException $e) {
+            $this->session->data['error_warning'] = $e->getMessage();
+            $webforms = [];
+        }
+
+        if (!empty($webforms)) {
 			foreach ($webforms as $form) {
 				if (isset($form['webformId']) && !empty($form['webformId']) && $form['status'] == 'enabled') {
 					$old_forms[] = ['id' => $form['webformId'], 'name' => htmlspecialchars($form['name']), 'url' => $form['scriptUrl']];
@@ -311,61 +322,73 @@ class ControllerExtensionModuleGetresponse extends Controller
                 ));
             }
 
-		    $apiKey = trim ($post['module_getresponse_apikey']);
+		    try {
+                $apiKey = trim($post['module_getresponse_apikey']);
 
-            $isEnterprise = false;
-            if (isset($post['getresponse-enterprise']) && 'on' === $post['getresponse-enterprise']) {
-                $isEnterprise = true;
-                $apiUrl = trim($post['getresponse-account-type']);
-                $domain = trim($post['getresponse-account-domain']);
-            }
+                $isEnterprise = false;
+                if (isset($post['getresponse-enterprise']) && 'on' === $post['getresponse-enterprise']) {
+                    $isEnterprise = true;
+                    $apiUrl = trim($post['getresponse-account-type']);
+                    $domain = trim($post['getresponse-account-domain']);
+                }
 
-		    if (isset($post['module_getresponse_campaign'])) {
-		        $campaign = $post['module_getresponse_campaign'];
-            }
+                if (isset($post['module_getresponse_campaign'])) {
+                    $campaign = $post['module_getresponse_campaign'];
+                }
 
-            if (isset($post['module_getresponse_reg'])) {
-                $registration = $post['module_getresponse_reg'];
-            }
+                if (isset($post['module_getresponse_reg'])) {
+                    $registration = $post['module_getresponse_reg'];
+                }
 
-            if (isset($post['module_getresponse_form'], $post['module_getresponse_form']['id'])) {
-                $form_id = $post['module_getresponse_form']['id'];
+                if (isset($post['module_getresponse_form'], $post['module_getresponse_form']['id'])) {
+                    $form_id = $post['module_getresponse_form']['id'];
 
-                if (!empty($form_id)) {
-                    $params = explode('-', $form_id);
+                    if (!empty($form_id)) {
+                        $params = explode('-', $form_id);
 
-                    if (count($params) === 2) {
+                        if (count($params) === 2) {
 
-                        if ($params[0] === 'form') {
-                            $webform = $this->get_response->getWebForm($params[1]);
-                        } else {
-                            $webform = $this->get_response->getForm($params[1]);
-                        }
+                            if ($params[0] === 'form') {
+                                $webform = $this->get_response->getWebForm($params[1]);
+                            } else {
+                                $webform = $this->get_response->getForm($params[1]);
+                            }
 
-                        if (isset($webform['scriptUrl'])) {
-                            $selectedWebForm = ['url' => $webform['scriptUrl'], 'id' => $params[1], 'active' => $post['module_getresponse_form']['active']];
+                            if (isset($webform['scriptUrl'])) {
+                                $selectedWebForm = [
+                                    'url' => $webform['scriptUrl'],
+                                    'id' => $params[1],
+                                    'active' => $post['module_getresponse_form']['active']
+                                ];
+                            }
                         }
                     }
                 }
+
+                $data = [
+                    'module_getresponse_status' => 1,
+                    'module_getresponse_apikey' => $apiKey,
+                    'module_getresponse_campaign' => $campaign,
+                    'module_getresponse_reg' => $registration,
+                    'module_getresponse_form' => $selectedWebForm,
+                    'module_getresponse_domain' => $isEnterprise ? $domain : null,
+                    'module_getresponse_apiurl' => $isEnterprise ? $apiUrl : null
+                ];
+
+                $this->model_setting_setting->editSetting('module_getresponse', $data);
+                $this->session->data['success'] = $this->language->get('text_success');
+                $this->response->redirect($this->url->link(
+                    'extension/module/getresponse', 'user_token='.$this->session->data['user_token'],
+                    'SSL'
+                ));
+            } catch (GetresponseApiException $e) {
+                $this->session->data['error_warning'] = $e->getMessage();
+                $this->response->redirect($this->url->link(
+                    'extension/module/getresponse', 'user_token='.$this->session->data['user_token'],
+                    'SSL'
+                ));
             }
-
-            $data = [
-                'module_getresponse_status' => 1,
-                'module_getresponse_apikey' => $apiKey,
-                'module_getresponse_campaign' => $campaign,
-                'module_getresponse_reg' => $registration,
-                'module_getresponse_form' => $selectedWebForm,
-                'module_getresponse_domain' => $isEnterprise ? $domain : null,
-                'module_getresponse_apiurl' => $isEnterprise ? $apiUrl : null
-            ];
-
-            $this->model_setting_setting->editSetting('module_getresponse', $data);
-            $this->session->data['success'] = $this->language->get('text_success');
-            $this->response->redirect($this->url->link(
-                'extension/module/getresponse', 'user_token=' . $this->session->data['user_token'],
-                'SSL'
-            ));
-		}
+        }
 	}
 
     /**
@@ -436,22 +459,22 @@ class ControllerExtensionModuleGetresponse extends Controller
 					}
 				}
 
-				$grContact = $this->get_response->getContacts(
-						['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
-				);
-
-				$cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : 0;
-
-				$params = [
-						'name' => trim($row['firstname'] . ' ' . $row['lastname']),
-						'email' => $row['email'],
-						'dayOfCycle' => $cycle_day,
-						'campaign' => ['campaignId' => $gr_campaign['campaignId']],
-						'customFieldValues' => $customs,
-						'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
-                ];
-
 				try {
+                    $grContact = $this->get_response->getContacts(
+                        ['query' => ['campaignId' => $gr_campaign['campaignId'], 'email' => $row['email']]]
+                    );
+
+                    $cycle_day = (!empty($grContact) && !empty($grContact['dayOfCycle'])) ? $grContact['dayOfCycle'] : 0;
+
+                    $params = [
+                        'name' => trim($row['firstname'] . ' ' . $row['lastname']),
+                        'email' => $row['email'],
+                        'dayOfCycle' => $cycle_day,
+                        'campaign' => ['campaignId' => $gr_campaign['campaignId']],
+                        'customFieldValues' => $customs,
+                        'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
+                    ];
+
 					$r = $this->get_response->addContact($params);
 
 					if (!isset($r['code'])) {
@@ -479,30 +502,41 @@ class ControllerExtensionModuleGetresponse extends Controller
 	}
 
 	private function getCustomFieldId($name) {
-        $custom_field = $this->get_response->getCustomFields(['query' => ['name' => $name]]);
-        $custom_field = reset($custom_field);
+	    try {
+            $custom_field = $this->get_response->getCustomFields(['query' => ['name' => $name]]);
+            $custom_field = reset($custom_field);
 
-		if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
-			return $custom_field['customFieldId'];
-		}
+            if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
+                return $custom_field['customFieldId'];
+            }
 
-		$newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
+            $newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
 
-		$result = $this->get_response->setCustomField($newCustom);
+            $result = $this->get_response->setCustomField($newCustom);
 
-		if (isset($result['customFieldId'])) {
-			return $result['customFieldId'];
-		}
-		return false;
-	}
+            if (isset($result['customFieldId'])) {
+                return $result['customFieldId'];
+            }
+
+            return false;
+        } catch (GetresponseApiException $e) {
+            $this->session->data['error_warning'] = $e->getMessage();
+            return false;
+        }
+    }
 
 	/**
 	 * @return array
 	 */
 	private function getCampaigns() {
 	    $campaigns = [];
-		$response = $this->get_response->getCampaigns();
-		foreach ($response as $campaign) {
+        try {
+            $response = $this->get_response->getCampaigns();
+        } catch (GetresponseApiException $e) {
+            $this->session->data['error_warning'] = $e->getMessage();
+            $response = [];
+        }
+        foreach ($response as $campaign) {
 		    $campaigns[$campaign['campaignId']] = $campaign;
         }
 		return $campaigns;
