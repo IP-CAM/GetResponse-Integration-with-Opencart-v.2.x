@@ -67,8 +67,13 @@ class ControllerExtensionModuleGetresponse extends Controller
 			$params['dayOfCycle'] = (int)$settings['day'];
 		}
 
-		$get_response->addContact($params);
-		return true;
+        try {
+            $get_response->addContact($params);
+        } catch (GetresponseApiException $e) {
+		    return false;
+        }
+
+        return true;
 	}
 
     /**
@@ -77,26 +82,31 @@ class ControllerExtensionModuleGetresponse extends Controller
      * @return string
      */
 	private function getCustomFieldId($name) {
-        $get_response = new GetResponseApiV3(
-            $this->config->get('module_getresponse_apikey'),
-            $this->config->get('module_getresponse_apiurl'),
-            $this->config->get('module_getresponse_domain')
-        );
+	    try {
+            $get_response = new GetResponseApiV3(
+                $this->config->get('module_getresponse_apikey'),
+                $this->config->get('module_getresponse_apiurl'),
+                $this->config->get('module_getresponse_domain')
+            );
 
-        $custom_field = $get_response->getCustomFields(['query' => ['name' => $name]]);
-        $custom_field = reset($custom_field);
+            $custom_field = $get_response->getCustomFields(['query' => ['name' => $name]]);
+            $custom_field = reset($custom_field);
 
-        if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
-            return $custom_field['customFieldId'];
+            if (isset($custom_field['customFieldId']) && !empty($custom_field['customFieldId'])) {
+                return $custom_field['customFieldId'];
+            }
+
+            $newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
+
+            $result = $get_response->setCustomField($newCustom);
+
+            if (isset($result['customFieldId'])) {
+                return $result['customFieldId'];
+            }
+
+            return '';
+        } catch (GetresponseApiException $e) {
+	        return '';
         }
-
-        $newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
-
-        $result = $get_response->setCustomField($newCustom);
-
-        if (isset($result['customFieldId'])) {
-            return $result['customFieldId'];
-        }
-        return '';
-	}
+    }
 }
