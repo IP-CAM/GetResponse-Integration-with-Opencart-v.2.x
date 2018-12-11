@@ -1,5 +1,5 @@
 <?php
-
+require_once('getresponseApiException.php');
 /**
  * GetResponse API v3 client library
  *
@@ -36,12 +36,14 @@ class GetResponseApiV3
 
     /**
      * Set api key and optionally API endpoint
-     * @param      $api_key
-     * @param null $api_url
+     * @param string      $api_key
+     * @param null|string $api_url
+     * @param null|string $domain
      */
-    public function __construct($api_key, $api_url = null)
+    public function __construct($api_key, $api_url = null, $domain = null)
     {
         $this->api_key = $api_key;
+        $this->enterprise_domain = $domain;
 
         if (!empty($api_url)) {
             $this->api_url = $api_url;
@@ -74,6 +76,7 @@ class GetResponseApiV3
     /**
      * Return all campaigns
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getCampaigns()
     {
@@ -95,6 +98,7 @@ class GetResponseApiV3
      * Return all autoresponders
      * @param null $params
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getAutoresponders($params = [])
     {
@@ -117,6 +121,7 @@ class GetResponseApiV3
      *
      * @param $params
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function addContact($params)
     {
@@ -128,6 +133,7 @@ class GetResponseApiV3
      * @param array $params
      *
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getContacts($params = [])
     {
@@ -139,6 +145,7 @@ class GetResponseApiV3
      * @param array $params
      *
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getCustomFields($params = [])
     {
@@ -150,6 +157,7 @@ class GetResponseApiV3
      *
      * @param $params
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function setCustomField($params)
     {
@@ -161,6 +169,7 @@ class GetResponseApiV3
      *
      * @param int $w_id
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getWebForm($w_id)
     {
@@ -172,6 +181,7 @@ class GetResponseApiV3
      * @param array $params
      *
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getWebForms($params = [])
     {
@@ -183,6 +193,7 @@ class GetResponseApiV3
      *
      * @param int $form_id
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getForm($form_id)
     {
@@ -194,6 +205,7 @@ class GetResponseApiV3
      * @param array $params
      *
      * @return mixed
+     * @throws GetresponseApiException
      */
     public function getForms($params = [])
     {

@@ -2,8 +2,8 @@
 // Heading
 $_['heading_title']              = 'GetResponse';
 $_['text_module']                = 'Modules';
-$_['text_success']               = 'Success: You have modified module GetResponse!';
-$_['text_disconnect_success']    = 'You have logged out.';
+$_['text_success']               = 'GetResponse account connected';
+$_['text_disconnect_success']    = 'GetResponse account disconnected';
 $_['button_export']              = 'Export to campaign';
 $_['button_disconnect']          = 'Disconnect';
 
@@ -11,6 +11,13 @@ $_['apikey_info'] = 'If you already are a GetResponse customer, please enter you
 $_['export_info'] = 'This option enables one-time export of contacts from your OpenCart account to GetResponse. Choose a target campaign to which your contacts will be exported.';
 $_['register_info'] = 'With this feature you can add subscribers to a selected GetResponse campaign once they register to your online shop via the registration page. Select the target campaign or create a new campaign for your Prestashop subscribers. If the campaign includes an autoresponder, choose the sequence day you want to export the contacts to. In case a customer might change her/his contact data in the last stage of order placement, check the Checkout Update box and GetResponse will update the information automatically.';
 $_['webform_info'] = 'You can now add your GetResponse web forms to your OpenCart store. Simply pick one of the web forms you’ve created at GetResponse and add it to your layout in Design >> Layouts.';
+
+$_['enterprise_package'] = 'I have the Enterprise package';
+$_['account_type'] = 'Account type';
+$_['enterprise_package_com'] = 'GetResponse Enterprise COM';
+$_['enterprise_package_pl'] = 'GetResponse Enterprise PL';
+$_['your_domain'] = 'Your domain';
+$_['your_domain_help'] = 'Enter your domain without protocol (https://) eg: "example.com"';
 
 $_['apikey_title'] = 'API key settings';
 $_['export_title'] = 'Export customers';
@@ -40,7 +47,9 @@ $_['entry_guest_integration']    = 'Guest Checkout integration:<span class="help
 
 // Error
 $_['error_permission']           = 'Warning: You do not have permission to modify module GetResponse!';
-$_['error_apikey']               = 'Apikey required!';
-$_['error_incorrect_apikey']               = 'Error! Incorrect apikey!';
+$_['error_apikey']               = 'You need to enter the API key. This field can\'t be empty.';
+$_['error_domain']               = 'Domain cannot be empty.';
+$_['error_incorrect_apikey']     = 'Unable to authenticate request. Check credentials or authentication method details';
 $_['text_edit']               = 'Getresponse settings';
 $_['exporting_button']               = 'Exporting...';
+$_['settings_saved']               = 'Settings saved';
