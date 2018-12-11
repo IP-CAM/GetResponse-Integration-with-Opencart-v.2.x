@@ -3,7 +3,7 @@
 $_['heading_title']              = 'GetResponse';
 $_['text_module']                = 'Modules';
 $_['text_success']               = 'GetResponse account connected';
-$_['text_disconnect_success']    = 'You have logged out.';
+$_['text_disconnect_success']    = 'GetResponse account disconnected';
 $_['button_export']              = 'Export to campaign';
 $_['button_disconnect']          = 'Disconnect';
 
@@ -52,3 +52,4 @@ $_['error_domain']               = 'Domain cannot be empty.';
 $_['error_incorrect_apikey']     = 'Unable to authenticate request. Check credentials or authentication method details';
 $_['text_edit']               = 'Getresponse settings';
 $_['exporting_button']               = 'Exporting...';
+$_['settings_saved']               = 'Settings saved';

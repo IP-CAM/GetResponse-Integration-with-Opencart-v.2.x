@@ -391,7 +391,12 @@ class ControllerExtensionModuleGetresponse extends Controller
                 ];
 
                 $this->model_setting_setting->editSetting('module_getresponse', $data);
-                $this->session->data['success'] = $this->language->get('text_success');
+
+                if ($post['module_getresponse_hidden_apikey'] !== $post['module_getresponse_apikey']) {
+                    $this->session->data['success'] = $this->language->get('settings_saved');
+                } else {
+                    $this->session->data['success'] = $this->language->get('text_success');
+                }
                 $this->response->redirect($this->url->link(
                     'extension/module/getresponse', 'user_token='.$this->session->data['user_token'],
                     'SSL'
