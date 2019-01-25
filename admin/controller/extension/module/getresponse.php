@@ -256,7 +256,7 @@ class ControllerExtensionModuleGetresponse extends Controller
             $data['active_tab'] = 'home';
         }
 
-		$data[GetresponseApiSettings::API_KEY_FIELD_NAME] = $this->getresponseApiSettings->getHiddenApiKey();
+		$data[GetresponseApiSettings::API_KEY_FIELD_NAME] = $this->getresponseApiSettings->getApiKey();
         $data[GetresponseApiSettings::API_DOMAIN_FIELD_NAME] = $this->getresponseApiSettings->getDomain();
         $data[GetresponseApiSettings::API_URL_FIELD_NAME] = $this->getresponseApiSettings->getUrl();
         $data['all_env'] = GetresponseApiSettings::getAvailableEnvironments();
