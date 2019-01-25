@@ -10,23 +10,14 @@
  */
 class GetResponseApiV3
 {
-    /** @var string */
-    private $api_key;
-
-    /** @var string */
-    private $api_url = 'https://api.getresponse.com/v3';
-
     /** @var int */
     private $timeout = 10;
 
     /** @var string */
     public $http_status;
 
-    /**
-     * X-Domain header value if empty header will be not provided
-     * @var string|null
-     */
-    private $enterprise_domain = null;
+    /** @var GetresponseApiSettings */
+    private $getresponseApiSettings;
 
     /**
      * X-APP-ID header value if empty header will be not provided
@@ -35,27 +26,11 @@ class GetResponseApiV3
     private $app_id = 'e0b666d6-f97f-485b-8dd4-8b9be196963b';
 
     /**
-     * Set api key and optionally API endpoint
-     * @param      $api_key
-     * @param null $api_url
+     * @param GetresponseApiSettings $getresponseApiSettings
      */
-    public function __construct($api_key, $api_url = null)
+    public function __construct(GetresponseApiSettings $getresponseApiSettings)
     {
-        $this->api_key = $api_key;
-
-        if (!empty($api_url)) {
-            $this->api_url = $api_url;
-        }
-    }
-
-    /**
-     * We can modify internal settings
-     * @param $key
-     * @param $value
-     */
-    function __set($key, $value)
-    {
-        $this->{$key} = $value;
+        $this->getresponseApiSettings = $getresponseApiSettings;
     }
 
     /**
@@ -354,6 +329,7 @@ class GetResponseApiV3
      */
     private function call($api_method = null, $http_method = 'GET', $params = [])
     {
+
         if (empty($api_method)) {
             $obj = new \stdClass();
             $obj->httpStatus = 400;
@@ -365,8 +341,17 @@ class GetResponseApiV3
         }
 
         $params = json_encode($params);
-        $url = $this->api_url . '/' . $api_method;
+        $url = $this->getresponseApiSettings->getUrl() . '/' . $api_method;
 
+        $headers = [];
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'X-APP-ID: ' . $this->app_id;
+        $headers[] = 'X-Auth-Token: api-key ' . $this->getresponseApiSettings->getApiKey();
+
+        if ($this->getresponseApiSettings->isMx()) {
+            $headers[] = 'X-Domain: ' . $this->getresponseApiSettings->getDomain();
+        }
+//echo "<pre>"; print_r($this->getresponseApiSettings);  print_r($headers); echo $url . PHP_EOL;
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_ENCODING => 'gzip,deflate',
@@ -374,17 +359,9 @@ class GetResponseApiV3
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_HEADER => false,
-            CURLOPT_USERAGENT => 'PHP GetResponse client 0.0.2',
-            CURLOPT_HTTPHEADER => ['X-Auth-Token: api-key ' . $this->api_key, 'Content-Type: application/json']
+            CURLOPT_USERAGENT => 'Opencart Plugin ',
+            CURLOPT_HTTPHEADER => $headers
         ];
-
-        if (!empty($this->enterprise_domain)) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-Domain: ' . $this->enterprise_domain;
-        }
-
-        if (!empty($this->app_id)) {
-            $options[CURLOPT_HTTPHEADER][] = 'X-APP-ID: ' . $this->app_id;
-        }
 
         if ($http_method == 'POST') {
             $options[CURLOPT_POST] = 1;
