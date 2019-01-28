@@ -288,15 +288,19 @@ class ControllerExtensionModuleGetresponse extends Controller
             $this->session->data['error_warning'] = $this->language->get('error_incorrect_apikey');
         } else {
 
-            $form_details = explode('-', $this->request->post['getresponse_form']['id']);
+            $this->request->post['getresponse_form']['url'] = null;
+            if (isset($this->request->post['getresponse_form']['id'])) {
 
-            if(isset($form_details['0']) && 'old' === $form_details[0]) {
-                $webform = $this->getResponseApiV3->getForm($form_details[1]);
-            } else {
-                $webform = $this->getResponseApiV3->getWebForm($form_details[1]);
+                $form_details = explode('-', $this->request->post['getresponse_form']['id']);
+
+                if (isset($form_details['0']) && 'old' === $form_details[0]) {
+                    $webform = $this->getResponseApiV3->getForm($form_details[1]);
+                } else {
+                    $webform = $this->getResponseApiV3->getWebForm($form_details[1]);
+                }
+
+                $this->request->post['getresponse_form']['url'] = isset($webform->scriptUrl) ? $webform->scriptUrl : null;
             }
-
-            $this->request->post['getresponse_form']['url'] = isset($webform->scriptUrl) ? $webform->scriptUrl : null;
 
             $this->model_setting_setting->editSetting('getresponse', $this->request->post);
             $this->session->data['success'] = $this->language->get('text_success');
