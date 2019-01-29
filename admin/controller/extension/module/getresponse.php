@@ -391,16 +391,17 @@ class ControllerExtensionModuleGetresponse extends Controller
 						['query' => ['campaignId' => $gr_campaign->campaignId, 'email' => $row['email']]]
 				);
 
-				$cycle_day = (!empty($grContact) && !empty($grContact->dayOfCycle)) ? $grContact->dayOfCycle : 0;
-
 				$params = [
 						'name' => $row['firstname'] . ' ' . $row['lastname'],
 						'email' => $row['email'],
-						'dayOfCycle' => $cycle_day,
 						'campaign' => ['campaignId' => $gr_campaign->campaignId],
 						'customFieldValues' => $customs,
 						'ipAddress' => empty($row['ip']) ? '127.0.0.1' : $row['ip']
                 ];
+
+				if (!empty($grContact) && !empty($grContact->dayOfCycle)) {
+				    $params['dayOfCycle'] = $grContact->dayOfCycle;
+                }
 
 				try {
 					$r = $this->getResponseApiV3->addContact($params);
