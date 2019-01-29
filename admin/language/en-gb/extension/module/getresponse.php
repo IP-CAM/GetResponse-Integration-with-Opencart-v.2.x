@@ -3,7 +3,9 @@
 $_['heading_title']              = 'GetResponse';
 $_['text_module']                = 'Modules';
 $_['text_success']               = 'Success: You have modified module GetResponse!';
+$_['text_disconnect']            = 'You have logged out';
 $_['button_export']              = 'Export to campaign';
+$_['button_disconnect']          = 'Disconnect';
 
 $_['apikey_info'] = 'If you already are a GetResponse customer, please enter your API key to enable the module and click "Save" to continue...';
 $_['export_info'] = 'This option enables one-time export of contacts from your OpenCart account to GetResponse. Choose a target campaign to which your contacts will be exported.';
@@ -40,4 +42,4 @@ $_['entry_guest_integration']    = 'Guest Checkout integration:<span class="help
 // Error
 $_['error_permission']           = 'Warning: You do not have permission to modify module GetResponse!';
 $_['error_apikey']               = 'Apikey required!';
-$_['error_incorrect_apikey']               = 'Error! Incorrect apikey!';
+$_['error_incorrect_apikey']     = 'Error! Incorrect authentication details!';

@@ -36,13 +36,13 @@ class ControllerExtensionModuleGetresponse extends Controller
 		$this->load->model('account/customer');
 		$customer = $this->model_account_customer->getCustomer($customer_id);
 		$settings = $this->config->get('getresponse_reg');
-		$apikey = $this->config->get('getresponse_apikey');
 
 		if ($settings['active'] == 0 || $customer['newsletter'] == 0) {
 			return true;
 		}
 
-		$get_response = new GetResponseApiV3($apikey);
+		$getresponseApiClient = $this->getGetresponseApiClient();
+
 		$customs = [];
 		$customs[] = ['customFieldId' => $this->getCustomFieldId('origin'), 'value' => ['OpenCart']];
 
@@ -64,20 +64,34 @@ class ControllerExtensionModuleGetresponse extends Controller
 			$params['dayOfCycle'] = (int)$settings['day'];
 		}
 
-		$get_response->addContact($params);
+		$getresponseApiClient->addContact($params);
 		return true;
 	}
+
+    /**
+     * @return GetResponseApiV3
+     */
+	private function getGetresponseApiClient()
+    {
+        return new GetResponseApiV3(
+            new GetresponseApiSettings(
+                $this->config->get(GetresponseApiSettings::API_KEY_FIELD_NAME),
+                $this->config->get(GetresponseApiSettings::API_DOMAIN_FIELD_NAME),
+                $this->config->get(GetresponseApiSettings::API_URL_FIELD_NAME)
+            )
+        );
+    }
 
     /**
      * @param string $name
      *
      * @return string
      */
-	private function getCustomFieldId($name) {
-        $apikey = $this->config->get('getresponse_apikey');
-        $get_response = new GetResponseApiV3($apikey);
+	private function getCustomFieldId($name)
+    {
+        $getresponseApiClient = $this->getGetresponseApiClient();
 
-        $custom_field = (array) $get_response->getCustomFields(['query' => ['name' => $name]]);
+        $custom_field = (array) $getresponseApiClient->getCustomFields(['query' => ['name' => $name]]);
         $custom_field = reset($custom_field);
 
         if (isset($custom_field->customFieldId) && !empty($custom_field->customFieldId)) {
@@ -86,7 +100,7 @@ class ControllerExtensionModuleGetresponse extends Controller
 
         $newCustom = ['name' => $name, 'type' => 'text', 'hidden' => false, 'values' => []];
 
-        $result = $get_response->setCustomField($newCustom);
+        $result = $getresponseApiClient->setCustomField($newCustom);
 
         if (isset($result->customFieldId)) {
             return $result->customFieldId;
