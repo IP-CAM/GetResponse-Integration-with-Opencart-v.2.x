@@ -4,4 +4,5 @@ admin/model/extension/getresponse.php admin/model/extension/getresponse.php
 admin/view/template/extension/module/getresponse.tpl admin/view/template/extension/module/getresponse.tpl
 catalog/controller/extension/module/getresponse.php catalog/controller/extension/module/getresponse.php
 system/library/getresponseapiv3.php system/library/getresponseapiv3.php
+system/library/getresponseapisettings.php system/library/getresponseapisettings.php
 catalog/view/theme/default/template/extension/module/getresponse.tpl catalog/view/theme/default/template/extension/module/getresponse.tpl

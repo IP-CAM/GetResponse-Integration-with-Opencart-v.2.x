@@ -4,9 +4,12 @@
   <div class="page-header">
     <div class="container-fluid">
       <div class="pull-right">
-        <a onclick="$('#form').submit();" class="btn btn-primary"><?php echo $button_save; ?></a>
-        <a onclick="location = '<?php echo $cancel; ?>';"
-           class="btn btn-default"><?php echo $button_cancel; ?></a>
+        <a onclick="$('#form').submit();" class="btn btn-primary"><?=$button_save?></a>
+        <?php if (!empty($getresponse_apikey)) { ?>
+          <a onclick="location = '<?=$disconnect?>';" class="btn btn-danger"><?=$button_disconnect?></a>
+        <?php } ?>
+        <a onclick="location = '<?=$cancel?>';" class="btn btn-default"><?=$button_cancel?></a>
+
       </div>
       <h1><?php echo $heading_title; ?></h1>
       <ul class="breadcrumb">
@@ -39,19 +42,56 @@
             <li role="presentation" class="<?php if ($active_tab == 'webform') {echo "active";} ?>"><a href="#webform" aria-controls="webform" role="tab" data-toggle="tab"><?php echo $webform_title; ?></a></li>
             <?php } ?>
           </ul>
+
           <div class="tab-content">
             <div role="tabpanel" class="tab-pane <?php if ($active_tab == 'home') {echo "active";} ?>" id="settings">
+
               <h3><?php echo $apikey_title; ?></h3>
               <p><?php echo $apikey_info; ?></p>
+
               <div class="form-group required">
-                <label for="getresponse-apikey"
-                       class="col-sm-2 control-label"><?php echo $entry_apikey; ?></label>
-                <div class="col-sm-10">
-                  <input id="getresponse-apikey" class="form-control" type="text" name="getresponse_apikey"
-                         value="<?php echo $getresponse_apikey; ?>" size="50"/>
-                  <span id="gr-apikey-help" class="help-block"><?php echo $entry_apikey_hint; ?></span>
+                  <label for="getresponse-apikey" class="col-sm-2 control-label"><?php echo $entry_apikey; ?></label>
+                  <div class="col-sm-10">
+                    <input id="getresponse-apikey" class="form-control" type="text" name="getresponse_apikey" value="<?php echo $getresponse_apikey; ?>" size="50"/>
+                    <span id="gr-apikey-help" class="help-block"><?php echo $entry_apikey_hint; ?></span>
+                  </div>
+              </div>
+
+              <div class="form-group" style="border-top: 1px solid #ededed">
+                <div class="col-sm-10 col-sm-offset-2">
+                  <label for="getresponse-enterprise" style="font-weight: normal;">
+                    <?php $checked = true == $is_mx ? 'checked' : ''; ?>
+                    <input type="checkbox" id="getresponse-enterprise" name="getresponse-enterprise" data-com.agilebits.onepassword.user-edited="yes" <?=$checked?>>
+                    I have the Enterprise package
+                  </label>
                 </div>
               </div>
+
+              <div class="form-group enterprise-package" style="border-top: 1px solid #ededed">
+                <div class="col-sm-2 control-label"><label for="getresponse_api_url">Account type</label></div>
+                <div class="col-sm-10">
+                  <select id="getresponse_api_url" class="form-control" name="getresponse_api_url">
+                    <?php
+                    foreach ($all_env as $env) {
+                      if ($env['is_mx']) {
+                        $selected = $env['url'] == $getresponse_api_url ? 'selected' : '';
+                        echo "<option value='{$env['url']}' {$selected}>{$env['name']}</option>";
+                      }
+                    }
+                    ?>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group enterprise-package" style="border-top: 1px solid #ededed">
+                <div class="col-sm-2 control-label"><label for="getresponse_api_domain">Your domain</label></div>
+                <div class="col-sm-10">
+                  <input type="text" name="getresponse_api_domain" class="form-control" id="getresponse_api_domain" value="<?=$getresponse_api_domain?>">
+                  <span class="help-block">Enter your domain without protocol (https://) eg: "example.com"</span>
+                </div>
+              </div>
+
+
             </div>
             <?php if (!empty($getresponse_apikey)) { ?>
             <div role="tabpanel" class="tab-pane <?php if ($active_tab == 'export') {echo "active";} ?>" id="export">
@@ -137,14 +177,14 @@
                     <?php if (isset($new_forms) && !empty($new_forms)) { ?>
                     <optgroup label="<?php echo $label_new_forms; ?>">
                     <?php foreach ($new_forms as $form) { ?>
-                    <option value="<?php echo $form['id']; ?>"<?php if (isset($getresponse_form['id']) && $getresponse_form['id'] == $form['id']) { ?> selected<?php } ?> data-url="<?php echo $form['url']; ?>"><?php echo $form['name']; ?></option>
+                    <option value="<?php echo $form['id']; ?>"<?php if (isset($getresponse_form['id']) && $getresponse_form['id'] == $form['id']) { ?> selected<?php } ?> data-url="<?php echo $form['url']; ?>"><?php echo htmlspecialchars($form['name']); ?></option>
                     <?php } ?>
                     </optgroup>
                     <?php } ?>
                     <?php if (isset($old_forms) && !empty($old_forms)) { ?>
                     <optgroup label="<?php echo $label_old_forms; ?>">
                       <?php foreach ($old_forms as $form) { ?>
-                      <option value="<?php echo $form['id']; ?>"<?php if (isset($getresponse_form['id']) && $getresponse_form['id'] == $form['id']) { ?> selected<?php } ?> data-url="<?php echo $form['url']; ?>"><?php echo $form['name']; ?></option>
+                      <option value="<?php echo $form['id']; ?>"<?php if (isset($getresponse_form['id']) && $getresponse_form['id'] == $form['id']) { ?> selected<?php } ?> data-url="<?php echo $form['url']; ?>"><?php echo htmlspecialchars($form['name']); ?></option>
                       <?php } ?>
                     </optgroup>
                     <?php } ?>
@@ -163,12 +203,24 @@
 
 <script type="text/javascript">
   <!--
+
+  isExportRunning = false;
+
   $(function () {
     var api_key_element = $('#getresponse-apikey');
     var campaign_element = $('#getresponse-campaign');
     var export_element = $('#gr-export');
     var tab_element = $( "li[role='presentation']" );
     var current_tab_input = $('#getresponse-current-tab');
+
+      $('#getresponse-enterprise').bind('change', function () {
+          if ($(this).is(':checked')) {
+              $('.enterprise-package').removeClass('hidden');
+          } else {
+              $('.enterprise-package').addClass('hidden');
+          }
+      }).trigger('change');
+
 
     $('#getresponse-reg-campaign').change(function () {
       getCycleDays();
@@ -203,6 +255,7 @@
     getCycleDays();
 
     function ajax_export() {
+
       var api_key = api_key_element.val();
       var campaign = campaign_element.val();
 
@@ -216,18 +269,30 @@
           'campaign': campaign
         },
         success: function (data) {
-          $('.gr-info').html('<div class="alert alert-success">' + data.response + '</div>');
+            $(export_element).removeAttr("disabled");
+            isExportRunning = false;
+            $('.gr-info').html('<div class="alert alert-success">' + data.response + '</div>');
         },
         error: function (response) {
-          $('.gr-info').html(' <div class="alert alert-danger"><?php echo $info_ajax_error; ?></div>');
+            $(export_element).removeAttr("disabled");
+            isExportRunning = false;
+            $('.gr-info').html(' <div class="alert alert-danger"><?php echo $info_ajax_error; ?></div>');
         },
         type: "POST",
-        async: false,
         dataType: "json"
       });
     }
 
+
+
     $(export_element).click(function () {
+
+      if (isExportRunning) {
+          return;
+      }
+
+      isExportRunning = true;
+      $(export_element).attr("disabled", "disabled");
       ajax_export();
     });
 
